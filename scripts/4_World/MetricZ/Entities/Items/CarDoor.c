@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -17,7 +18,7 @@ modded class CarDoor
 	{
 		super.EEInit();
 
-		MetricZ_Storage.s_CarParts.Inc();
+		MetricZ_Storage.s_CarParts += 1;
 	}
 
 	/**
@@ -25,7 +26,7 @@ modded class CarDoor
 	*/
 	override void EEDelete(EntityAI parent)
 	{
-		MetricZ_Storage.s_CarParts.Dec();
+		MetricZ_Storage.s_CarParts -= 1;
 
 		super.EEDelete(parent);
 	}

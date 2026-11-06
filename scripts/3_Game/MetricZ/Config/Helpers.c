@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -79,39 +80,5 @@ class MetricZ_Helpers
 		return "0";
 	}
 
-	/**
-	    \brief Normalize URL, build URL with auth data
-	*/
-	static string GetActiveURL(string url, string user, string password)
-	{
-		url.TrimInPlace();
-
-		if (url == string.Empty)
-			return url;
-
-		string schema;
-		string path;
-		int pos = url.IndexOf("://");
-
-		if (pos != -1) {
-			int hostPos = pos + 3;
-			schema = url.Substring(0, hostPos);
-			path = url.Substring(hostPos, url.Length() - hostPos);
-		} else {
-			schema = "http://";
-			path = url;
-		}
-
-		if (user != string.Empty && password != string.Empty) {
-			if (path.IndexOf("@") == -1)
-				path = string.Format("%1:%2@%3", user, password, path);
-		}
-
-		int len = path.Length();
-		if (len > 0 && path.Get(len - 1) == "/")
-			path = path.Substring(0, len - 1);
-
-		return schema + path;
-	}
 }
 #endif

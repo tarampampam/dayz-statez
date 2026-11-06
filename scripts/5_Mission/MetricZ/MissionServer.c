@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -42,7 +43,7 @@ modded class MissionServer : MissionBase
 		super.OnClientNewEvent(identity, pos, ctx);
 
 		if (m_player)
-			MetricZ_Storage.s_PlayersSpawns.Inc();
+			MetricZ_Storage.s_PlayersSpawns += 1;
 
 		return m_player;
 	}
@@ -56,7 +57,7 @@ modded class MissionServer : MissionBase
 		super.UpdateCorpseStatesServer();
 
 		if (MetricZ_Storage.IsInitialized())
-			MetricZ_Storage.s_Corpses.Set(m_DeadPlayersArray.Count());
+			MetricZ_Storage.s_Corpses = m_DeadPlayersArray.Count();
 	}
 
 	/**
@@ -65,7 +66,7 @@ modded class MissionServer : MissionBase
 	override void OnEvent(EventType eventTypeId, Param params)
 	{
 		if (eventTypeId == ChatMessageEventTypeID)
-			MetricZ_Storage.s_ChatMessages.Inc();
+			MetricZ_Storage.s_ChatMessages += 1;
 
 		super.OnEvent(eventTypeId, params);
 	}

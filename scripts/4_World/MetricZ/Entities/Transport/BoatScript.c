@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -45,7 +46,7 @@ modded class BoatScript
 		if (!MetricZ_Config.IsLoaded() || MetricZ_Config.Get().disabled_metrics.transports)
 			return;
 
-		MetricZ_Storage.s_Boats.Inc();
+		MetricZ_Storage.s_Boats += 1;
 		MetricZ_TransportRegistry.Register(this);
 
 		if (!m_MetricZ)
@@ -68,7 +69,7 @@ modded class BoatScript
 	{
 		if (MetricZ_Config.IsLoaded() && !MetricZ_Config.Get().disabled_metrics.transports) {
 			m_MetricZ = null;
-			MetricZ_Storage.s_Boats.Dec();
+			MetricZ_Storage.s_Boats -= 1;
 			MetricZ_TransportRegistry.Unregister(this);
 		}
 
@@ -81,7 +82,7 @@ modded class BoatScript
 	override void EEKilled(Object killer)
 	{
 		if (MetricZ_Config.IsLoaded() && !MetricZ_Config.Get().disabled_metrics.transports && !m_MetricZ_IsKilled) {
-			MetricZ_Storage.s_BoatsDestroys.Inc();
+			MetricZ_Storage.s_BoatsDestroys += 1;
 			m_MetricZ_IsKilled = true;
 		}
 

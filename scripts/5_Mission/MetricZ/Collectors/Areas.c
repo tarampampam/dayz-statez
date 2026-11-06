@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/logz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -20,9 +21,11 @@ class MetricZ_CollectorAreas : MetricZ_CollectorBase
 		return (MetricZ_Config.IsLoaded() && !MetricZ_Config.Get().disabled_metrics.areas);
 	}
 
-	override void Flush(MetricZ_SinkBase sink)
+	override void Flush()
 	{
-		MetricZ_EntitiesWriter.FlushEffectAreas(sink);
+		string json;
+		MetricZ_EntitiesWriter.BuildAreasJson(json);
+		MetricZ_JsonWriter.Write(MetricZ_Config.Get().json.export_dir, GetName(), json);
 	}
 }
 #endif

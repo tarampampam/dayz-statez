@@ -1,13 +1,14 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
 /**
     \brief Background exporter for MetricZ.
-    \details Owns scheduling, file I/O and coordination between collectors.
+    \details Owns scheduling and coordination between collectors.
              Entry points: Init() on mission start, Shutdown() on mission finish.
 */
 class MetricZ_Exporter
@@ -15,43 +16,18 @@ class MetricZ_Exporter
 	protected static ref MetricZ_Exporter s_Instance; // singleton instance
 
 	protected int m_FlushStep; //!< Flush State Machine - step number
-	protected float m_FlushStartTime; //!< Flush State Machine - start time
-	protected float m_BeginDuration; //!< Temporary storage for current cycle timing
 	protected bool s_Busy; //!< Guard prevents overlapping scrapes
-	protected ref MetricZ_SinkBase m_ActiveSink; //!< Active sink used in Flush
-	protected ref map<string, float> m_UpdatesBuffer; //!< Values buffer by component -> value
-	protected ref map<string, string> m_LabelsCache; //!< Labels cache by component -> label
 	protected ref array<ref MetricZ_CollectorBase> m_Collectors; //!< Registry of all metric collectors
-
-	protected ref MetricZ_MetricFloat m_UpdateDuration = new MetricZ_MetricFloat(
-	    "update_duration_seconds",
-	    "Duration of previous MetricZ update, seconds",
-	    MetricZ_MetricType.GAUGE);
-	protected ref MetricZ_MetricFloat m_SinkBeginDuration = new MetricZ_MetricFloat(
-	    "sink_begin_duration_seconds",
-	    "Time spent initializing the metric sink in the previous cycle (e.g. file open I/O or buffer allocation)",
-	    MetricZ_MetricType.GAUGE);
-	protected ref MetricZ_MetricFloat m_SinkEndDuration = new MetricZ_MetricFloat(
-	    "sink_end_duration_seconds",
-	    "Time spent finalizing the export in the previous cycle (e.g. file close/atomic swap or HTTP transmission)",
-	    MetricZ_MetricType.GAUGE);
-	protected ref MetricZ_MetricFloat m_ScrapeDuration = new MetricZ_MetricFloat(
-	    "scrape_duration_seconds",
-	    "Duration of specific scrape components in seconds",
-	    MetricZ_MetricType.GAUGE);
 
 	/**
 	    \brief Initialize MetricZ and schedule first scrape.
 	    \details Loads config, initializes storage and queues first Update().
-	    \return true if initialized this call, false if already initialized.
 	*/
 	void MetricZ_Exporter()
 	{
 		if (s_Instance)
 			return;
 
-		m_UpdatesBuffer = new map<string, float>();
-		m_LabelsCache = new map<string, string>();
 		m_Collectors = new array<ref MetricZ_CollectorBase>();
 
 		if (!MetricZ_Config.IsLoaded())
@@ -60,9 +36,9 @@ class MetricZ_Exporter
 		MetricZ_Storage.Init();
 
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(
-		          Update,
-		          MetricZ_Config.Get().settings.init_delay_sec * 1000,
-		          false);
+		    Update,
+		    MetricZ_Config.Get().settings.init_delay_sec * 1000,
+		    false);
 
 		// Register internal collectors
 		RegisterCollector(new MetricZ_CollectorWorld());
@@ -76,7 +52,6 @@ class MetricZ_Exporter
 		RegisterCollector(new MetricZ_CollectorAreas());
 		RegisterCollector(new MetricZ_CollectorRPC());
 		RegisterCollector(new MetricZ_CollectorEvents());
-		RegisterCollector(new MetricZ_CollectorHTTP());
 
 		ErrorEx("MetricZ: loaded with " + m_Collectors.Count() + " collectors", ErrorExSeverity.INFO);
 	}
@@ -100,7 +75,9 @@ class MetricZ_Exporter
 	static void Register(MetricZ_CollectorBase collector)
 	{
 		if (!s_Instance) {
-			ErrorEx("MetricZ: Attempt to register collector '" + collector.GetName() + "' too early! Register in MissionServer::OnInit after super.OnInit()", ErrorExSeverity.WARNING);
+			ErrorEx(
+			    "MetricZ: Attempt to register collector '" + collector.GetName() + "' too early! Register in MissionServer::OnInit after super.OnInit()",
+			    ErrorExSeverity.WARNING);
 			return;
 		}
 
@@ -108,9 +85,7 @@ class MetricZ_Exporter
 	}
 
 	/**
-	    \brief Graceful shutdown. Publishes status=0 and stops scheduling.
-	    \details Removes scheduled Update(), deletes temp file and overwrites
-	             target file with a single status metric.
+	    \brief Graceful shutdown. Writes status=0 or deletes all JSON files.
 	*/
 	void Shutdown()
 	{
@@ -118,39 +93,23 @@ class MetricZ_Exporter
 			return;
 
 		ErrorEx("MetricZ: scrape shutting down", ErrorExSeverity.INFO);
-		MetricZ_ConfigDTO cfg = MetricZ_Config.Get();
 
-		m_ActiveSink = null;
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).Remove(ProcessFlushStep);
+		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).Remove(Update);
 
-		if (cfg.http.enabled)
-			return;
-
-		// unlock
 		s_Instance = null;
 		s_Busy = false;
 
-		// stop future scrapes
-		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).Remove(Update);
-		DeleteFile(cfg.file.temp_file_path);
+		MetricZ_ConfigDTO cfg = MetricZ_Config.Get();
 
-		if (cfg.file.delete_on_shutdown) {
-			DeleteFile(cfg.file.prom_file_path);
+		if (cfg.json.delete_on_shutdown) {
+			MetricZ_JsonWriter.DeleteAll(cfg.json.export_dir);
 			return;
 		}
 
-		MetricZ_FileSink sink = new MetricZ_FileSink();
-		if (!sink)
-			return;
-
-		sink.SetBuffer(0);
-		if (!sink.Begin())
-			return;
-
-		MetricZ_Storage.s_Status.Set(0);
-		MetricZ_Storage.s_Status.FlushWithHead(sink, MetricZ_Storage.GetExtraLabels());
-
-		sink.End();
+		// signal offline status
+		string json = string.Format("{\"status\":0,\"ts\":%1}", MetricZ_Time.GameEpochSeconds());
+		MetricZ_JsonWriter.Write(cfg.json.export_dir, "status", json);
 	}
 
 	/**
@@ -177,75 +136,58 @@ class MetricZ_Exporter
 	}
 
 	/**
-	    \brief Periodic scrape task. Writes temp file and atomically publishes it.
+	    \brief Periodic scrape task. Runs all collectors one-per-frame.
 	    \details
 	        - Reschedules itself each call using fixed interval (minimizes drift).
 	        - Skips execution if a previous scrape is still running (s_Busy).
-	        - Calls MetricZ_Storage.Update() to refresh gauges.
-	        - Flushes all collectors into METRICS_TEMP and atomically replaces METRICS_FILE.
 	*/
 	protected void Update()
 	{
-		// Schedule next tick for minimize drift
+		// Schedule next tick to minimize drift
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(
-		          Update,
-		          MetricZ_Config.Get().settings.collect_interval_sec * 1000,
-		          false);
+		    Update,
+		    MetricZ_Config.Get().settings.collect_interval_sec * 1000,
+		    false);
 
 		if (!MetricZ_Config.IsLoaded())
 			return;
 
 		if (s_Busy) {
-			MetricZ_Storage.s_ScrapeSkippedTotal.Inc();
+			MetricZ_Storage.s_ScrapeSkippedTotal += 1;
 			ErrorEx("MetricZ: skip scrape, previous cycle still running", ErrorExSeverity.WARNING);
 			return;
 		}
 
 		s_Busy = true;
 		m_FlushStep = 0;
-		m_FlushStartTime = g_Game.GetTickTime();
-		m_ActiveSink = MetricZ_Sink.New();
-		m_UpdatesBuffer.Clear();
 
-		if (!m_ActiveSink || !m_ActiveSink.Begin()) {
-			s_Busy = false;
-			m_ActiveSink = null;
-
-			ErrorEx("MetricZ: failed to open sink", ErrorExSeverity.ERROR);
-			return;
-		}
-
-		// store for later
-		m_BeginDuration = g_Game.GetTickTime() - m_FlushStartTime;
-
-		// enter to Flush State Machine
+		// enter Flush State Machine
 		ProcessFlushStep();
 	}
 
 	/**
-	    \brief Executes ONE block of metrics and schedules the next block
+	    \brief Executes ONE collector and schedules the next.
 	*/
 	protected void ProcessFlushStep()
 	{
-		if (!m_ActiveSink) {
-			s_Busy = false;
-			return;
-		}
-
 		if (m_FlushStep >= m_Collectors.Count()) {
 			FinishFlush();
 			return;
 		}
 
-		// flush current collector
-		MetricZ_CollectorBase currentModule = m_Collectors.Get(m_FlushStep);
-		if (currentModule && currentModule.IsEnabled()) {
+		MetricZ_CollectorBase collector = m_Collectors.Get(m_FlushStep);
+		if (collector && collector.IsEnabled()) {
+#ifdef DIAG
 			float t = g_Game.GetTickTime();
-			currentModule.Flush(m_ActiveSink);
-			RecordProfile(currentModule.GetName(), t);
+#endif
+			collector.Flush();
+#ifdef DIAG
+			ErrorEx(
+			    string.Format("MetricZ: Flush %1 in frame %2 took: %3ms", collector.GetName(), m_FlushStep, (g_Game.GetTickTime() - t) * 1000),
+			    ErrorExSeverity.INFO);
+#endif
 		}
 
-		// schedule next step for the next server frame
 		m_FlushStep++;
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).Call(ProcessFlushStep);
 	}
@@ -255,83 +197,11 @@ class MetricZ_Exporter
 	*/
 	protected void FinishFlush()
 	{
-		// internal profiling metrics
-		FlushProfiles(m_ActiveSink);
-
-		// write durations from previous cycle
-		m_UpdateDuration.FlushWithHead(m_ActiveSink);
-		m_SinkBeginDuration.FlushWithHead(m_ActiveSink);
-		m_SinkEndDuration.FlushWithHead(m_ActiveSink);
-
-		// commit and close
-		float t = g_Game.GetTickTime();
-		m_ActiveSink.End();
-		m_ActiveSink = null;
-
-		// update metrics for next cycle
-		m_SinkBeginDuration.Set(m_BeginDuration);
-		m_SinkEndDuration.Set(g_Game.GetTickTime() - t);
-		m_UpdateDuration.Set(g_Game.GetTickTime() - m_FlushStartTime);
-
-#ifdef DIAG
-		ErrorEx(
-		    string.Format(
-		        "MetricZ: FinishFlush in frame %1 took: total %2ms / sink begin %3ms / sink end %4ms",
-		        m_FlushStep,
-		        m_UpdateDuration.Get() * 1000,
-		        m_SinkBeginDuration.Get() * 1000,
-		        m_SinkEndDuration.Get() * 1000),
-		    ErrorExSeverity.INFO);
-#endif
-
-		// update labels cache if needed
-		MetricZ_PersistentCache.Save();
-
 		s_Busy = false;
-	}
-
-	/**
-	    \brief Records duration into map buffer.
-	    \param component Name of the component.
-	    \param startTime Tick time when the operation started.
-	*/
-	protected void RecordProfile(string component, float startTime)
-	{
-		float t = g_Game.GetTickTime() - startTime;
-		m_UpdatesBuffer.Set(component, t);
 
 #ifdef DIAG
-		ErrorEx(
-		    string.Format(
-		        "MetricZ: Flush %1 in frame %2 took: %3ms",
-		        component, m_FlushStep, t * 1000),
-		    ErrorExSeverity.INFO);
+		ErrorEx("MetricZ: FinishFlush complete, step=" + m_FlushStep, ErrorExSeverity.INFO);
 #endif
-	}
-
-	/**
-	    \brief Writes buffered profiling metrics to the sink.
-	    \param sink MetricZ_SinkBase sink instance
-	*/
-	protected void FlushProfiles(MetricZ_SinkBase sink)
-	{
-		if (m_UpdatesBuffer.Count() == 0)
-			return;
-
-		m_ScrapeDuration.WriteHeaders(sink);
-		foreach (string key, float value : m_UpdatesBuffer) {
-			string label;
-
-			if (!m_LabelsCache.Find(key, label)) {
-				map<string, string> labelsMap = new map<string, string>();
-				labelsMap.Insert("component", key);
-				label = MetricZ_LabelUtils.MakeLabels(labelsMap);
-				m_LabelsCache.Insert(key, label);
-			}
-
-			m_ScrapeDuration.Set(value);
-			m_ScrapeDuration.Flush(sink, label);
-		}
 	}
 }
 #endif

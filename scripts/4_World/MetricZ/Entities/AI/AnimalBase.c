@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -30,7 +31,7 @@ modded class AnimalBase
 		if (!MetricZ_Config.Get().disabled_metrics.animals)
 			MetricZ_AnimalStats.OnSpawn(this);
 
-		MetricZ_Storage.s_Animals.Inc();
+		MetricZ_Storage.s_Animals += 1;
 	}
 
 	/**
@@ -39,10 +40,10 @@ modded class AnimalBase
 	override void EEDelete(EntityAI parent)
 	{
 		if (MetricZ_Config.IsLoaded()) {
-			MetricZ_Storage.s_Animals.Dec();
+			MetricZ_Storage.s_Animals -= 1;
 
 			if (m_MetricZ_IsKilled)
-				MetricZ_Storage.s_AnimalsCorpses.Dec();
+				MetricZ_Storage.s_AnimalsCorpses -= 1;
 
 			if (MetricZ_Config.IsLoaded() || !MetricZ_Config.Get().disabled_metrics.animals)
 				MetricZ_AnimalStats.OnDelete(this);
@@ -60,9 +61,9 @@ modded class AnimalBase
 			m_MetricZ_IsKilled = true;
 
 			if (killer != this)
-				MetricZ_Storage.s_AnimalsDeaths.Inc();
+				MetricZ_Storage.s_AnimalsDeaths += 1;
 
-			MetricZ_Storage.s_AnimalsCorpses.Inc();
+			MetricZ_Storage.s_AnimalsCorpses += 1;
 
 			if (!MetricZ_Config.Get().disabled_metrics.weapons && killer != this)
 				MetricZ_WeaponStats.OnCreatureKilled(killer);

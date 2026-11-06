@@ -1,75 +1,65 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
 /**
-    \brief Per-TerritoryFlag metrics collector.
-    \details Caches metric instances and label sets. Updated during scrape.
+    \brief Per-TerritoryFlag data collector.
+    \details Stores plain fields updated during scrape. Fills snapshot on demand.
 */
-class MetricZ_TerritoryMetrics : MetricZ_EntityMetricsBase
+class MetricZ_TerritoryMetrics
 {
-	protected TerritoryFlag m_TerritoryFlag; //!< Parent TerritoryFlag instance.
-	ref MetricZ_MetricFloat m_Lifetime; //!< Metric: Lifetime of the territory flag.
+	protected TerritoryFlag m_TerritoryFlag;
+
+	float m_LifetimeFraction;
+	float m_PosX;
+	float m_PosZ;
+	float m_RefresherRadius;
 
 	/**
-	    \brief Constructor. Initializes metric instances and spawn tick.
-	*/
-	void MetricZ_TerritoryMetrics()
-	{
-		m_Lifetime = new MetricZ_MetricFloat(
-		    "territory_lifetime",
-		    "Territory flag lifetime fraction 0..1",
-		    MetricZ_MetricType.GAUGE);
-	}
-
-	/**
-	    \brief One-time registry fill.
+	    \brief One-time init with territory reference.
 	    \param territory TerritoryFlag instance to initialize metrics for.
 	*/
 	void Init(TerritoryFlag territory)
 	{
-		if (!territory || m_Registry.Count() > 0)
+		if (!territory || m_TerritoryFlag)
 			return;
 
 		m_TerritoryFlag = territory;
+		m_RefresherRadius = GameConstants.REFRESHER_RADIUS;
 
-		m_Registry.Insert(m_Lifetime);
-
-		SetLabels();
+		vector pos = territory.GetPosition();
+		m_PosX = pos[0];
+		m_PosZ = pos[2];
 	}
 
 	/**
-	    \brief Update all metrics from the territory state.
+	    \brief Update all fields from the territory state.
 	*/
-	override void Update()
+	void Update()
 	{
-		if (!m_TerritoryFlag || m_Registry.Count() < 1)
+		if (!m_TerritoryFlag)
 			return;
 
-		m_Lifetime.Set(m_TerritoryFlag.GetRefresherTime01());
+		m_LifetimeFraction = m_TerritoryFlag.GetRefresherTime01();
 	}
 
 	/**
-	    \brief Build and cache territory label sets.
+	    \brief Fill a territory snapshot with current field values.
+	    \param snap Snapshot instance to populate.
 	*/
-	override protected void SetLabels()
+	void ToSnapshot(MetricZ_TerritorySnapshot snap)
 	{
-		if (!m_TerritoryFlag || m_Labels != string.Empty)
+		if (!snap)
 			return;
 
-		vector pos = MetricZ_Geo.GetPosition(m_TerritoryFlag);
-
-		map<string, string> labels = new map<string, string>();
-		labels.Insert("refresher_radius", GameConstants.REFRESHER_RADIUS.ToString());
-		labels.Insert("longitude", pos[0].ToString());
-		labels.Insert("latitude", pos[2].ToString());
-
-		m_Labels = MetricZ_LabelUtils.MakeLabels(labels);
-
-		ApplyLabelsToRegistry();
+		snap.pos_x = m_PosX;
+		snap.pos_z = m_PosZ;
+		snap.lifetime_fraction = m_LifetimeFraction;
+		snap.refresher_radius = m_RefresherRadius;
 	}
 }
 #endif

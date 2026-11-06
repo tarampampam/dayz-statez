@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -47,13 +48,13 @@ modded class CarScript
 
 #ifdef EXPANSIONMODVEHICLE
 		if (IsInherited(ExpansionBoatScript))
-			MetricZ_Storage.s_Boats.Inc();
+			MetricZ_Storage.s_Boats += 1;
 		else if (IsInherited(ExpansionHelicopterScript))
-			MetricZ_Storage.s_Helicopters.Inc();
+			MetricZ_Storage.s_Helicopters += 1;
 		else
-			MetricZ_Storage.s_Cars.Inc();
+			MetricZ_Storage.s_Cars += 1;
 #else
-		MetricZ_Storage.s_Cars.Inc();
+		MetricZ_Storage.s_Cars += 1;
 #endif
 
 		MetricZ_TransportRegistry.Register(this);
@@ -81,13 +82,13 @@ modded class CarScript
 
 #ifdef EXPANSIONMODVEHICLE
 			if (IsInherited(ExpansionBoatScript))
-				MetricZ_Storage.s_Boats.Dec();
+				MetricZ_Storage.s_Boats -= 1;
 			else if (IsInherited(ExpansionHelicopterScript))
-				MetricZ_Storage.s_Helicopters.Dec();
+				MetricZ_Storage.s_Helicopters -= 1;
 			else
-				MetricZ_Storage.s_Cars.Dec();
+				MetricZ_Storage.s_Cars -= 1;
 #else
-			MetricZ_Storage.s_Cars.Dec();
+			MetricZ_Storage.s_Cars -= 1;
 #endif
 
 			MetricZ_TransportRegistry.Unregister(this);
@@ -104,13 +105,13 @@ modded class CarScript
 		if (MetricZ_Config.IsLoaded() && !MetricZ_Config.Get().disabled_metrics.transports && !m_MetricZ_IsKilled) {
 #ifdef EXPANSIONMODVEHICLE
 			if (IsInherited(ExpansionBoatScript))
-				MetricZ_Storage.s_BoatsDestroys.Inc();
+				MetricZ_Storage.s_BoatsDestroys += 1;
 			else if (IsInherited(ExpansionHelicopterScript))
-				MetricZ_Storage.s_HelicoptersDestroys.Inc();
+				MetricZ_Storage.s_HelicoptersDestroys += 1;
 			else
-				MetricZ_Storage.s_CarsDestroys.Inc();
+				MetricZ_Storage.s_CarsDestroys += 1;
 #else
-			MetricZ_Storage.s_CarsDestroys.Inc();
+			MetricZ_Storage.s_CarsDestroys += 1;
 #endif
 			m_MetricZ_IsKilled = true;
 		}

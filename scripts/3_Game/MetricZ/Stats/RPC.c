@@ -1,22 +1,28 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
+
+class MetricZ_RpcStatsDTO
+{
+	void MetricZ_RpcStatsDTO()
+	{
+		rpc_input = new map<string, int>();
+	}
+
+	ref map<string, int> rpc_input;
+}
+
 /**
     \brief RPC counters aggregator
 */
 class MetricZ_RpcStats
 {
 	protected static ref map<int, int> s_InputRPCsRegistry = new map<int, int>(); //!< Map of RPC type to count
-
-	// Metric: Total input RPC calls
-	protected static ref MetricZ_MetricInt s_RpcTotal = new MetricZ_MetricInt(
-	    "rpc_input",
-	    "Total input RPC calls",
-	    MetricZ_MetricType.COUNTER);
 
 	/**
 	    \brief Increment counter for an RPC type.
@@ -32,31 +38,25 @@ class MetricZ_RpcStats
 	}
 
 	/**
-	    \brief Emit HELP/TYPE and per-RPC samples.
-	    \details Uses the in-memory registry and writes one sample per rpc_type with label {id="<id>"}.
-	              Headers written once per family.
-	    \param sink MetricZ_SinkBase instance
+	    \brief Serialize all RPC data to JSON.
+	    \param json Output JSON string.
 	*/
-	static void Flush(MetricZ_SinkBase sink)
+	static void BuildJson(out string json)
 	{
-		if (!sink || s_InputRPCsRegistry.Count() == 0)
+		if (s_InputRPCsRegistry.Count() == 0) {
+			json = "{}";
 			return;
+		}
 
-		// headers once
-		s_RpcTotal.WriteHeaders(sink);
+		MetricZ_RpcStatsDTO dto = new MetricZ_RpcStatsDTO();
 
-		// emit per id
 		for (int i = 0; i < s_InputRPCsRegistry.Count(); ++i) {
 			int id = s_InputRPCsRegistry.GetKey(i);
 			int val = s_InputRPCsRegistry.GetElement(i);
-
-			s_RpcTotal.Set(val);
-
-			map<string, string> labels = new map<string, string>();
-			labels.Insert("id", id.ToString());
-
-			s_RpcTotal.Flush(sink, MetricZ_LabelUtils.MakeLabels(labels));
+			dto.rpc_input.Insert(id.ToString(), val);
 		}
+
+		JsonSerializer().WriteToString(dto, false, json);
 	}
 }
 #endif

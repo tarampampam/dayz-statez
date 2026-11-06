@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 class CfgMods
@@ -10,7 +11,7 @@ class CfgMods
 	{
 		type = "mod";
 		dir = "metricz";
-		name = "Prometheus Metrics Exporter for DayZ";
+		name = "MetricZ — Server Data Exporter for DayZ";
 		version = "0.1.0";
 		credits = "WoozyMasta";
 		author = "WoozyMasta";

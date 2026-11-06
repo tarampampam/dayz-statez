@@ -1,10 +1,22 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
+
+class MetricZ_EventStatsDTO
+{
+	void MetricZ_EventStatsDTO()
+	{
+		events = new map<string, int>();
+	}
+
+	ref map<string, int> events;
+}
+
 /**
     \brief Event counters aggregator
 */
@@ -12,12 +24,6 @@ class MetricZ_EventStats
 {
 	protected static ref map<EventType, string> s_EventNames; //!< Map of EventType to name
 	protected static ref map<EventType, int> s_EventsRegistry = new map<EventType, int>(); //!< Map of EventType to count
-
-	// Metric: Total events by EventType
-	protected static ref MetricZ_MetricInt s_EventTotal = new MetricZ_MetricInt(
-	    "events",
-	    "Total events by EventType",
-	    MetricZ_MetricType.COUNTER);
 
 	/**
 	    \brief Increment counter for an EventType.
@@ -33,32 +39,27 @@ class MetricZ_EventStats
 	}
 
 	/**
-	    \brief Emit HELP/TYPE and per-event samples.
-	    \details Builds the EventType->name map lazily.
-	             Writes one sample per EventType with labels `{id, event}`.
-	    \param sink MetricZ_SinkBase metric sink instance
+	    \brief Serialize all event data to JSON.
+	    \param json Output JSON string.
 	*/
-	static void Flush(MetricZ_SinkBase sink)
+	static void BuildJson(out string json)
 	{
-		if (!sink || s_EventsRegistry.Count() == 0)
+		if (s_EventsRegistry.Count() == 0) {
+			json = "{}";
 			return;
+		}
 
 		MakeNameMap();
-		s_EventTotal.WriteHeaders(sink);
+
+		MetricZ_EventStatsDTO dto = new MetricZ_EventStatsDTO();
 
 		for (int i = 0; i < s_EventsRegistry.Count(); ++i) {
-			int id = s_EventsRegistry.GetKey(i);
+			EventType id = s_EventsRegistry.GetKey(i);
 			int val = s_EventsRegistry.GetElement(i);
-
-			s_EventTotal.Set(val);
-
-			string name = EventName(s_EventsRegistry.GetKey(i));
-			map<string, string> labels = new map<string, string>();
-			labels.Insert("id", id.ToString());
-			labels.Insert("event", name);
-
-			s_EventTotal.Flush(sink, MetricZ_LabelUtils.MakeLabels(labels));
+			dto.events.Insert(EventName(id), val);
 		}
+
+		JsonSerializer().WriteToString(dto, false, json);
 	}
 
 	/**
@@ -139,18 +140,18 @@ class MetricZ_EventStats
 	/**
 	    \brief Resolve a human-readable name for an EventType.
 	    \param id EventType id.
-	    \return \p string Name or "unknown".
+	    \return string Name or "unknown_<id>".
 	*/
 	protected static string EventName(EventType id)
 	{
 		if (!s_EventNames)
-			return "unknown";
+			return string.Format("unknown_%1", id);
 
 		string name;
 		if (s_EventNames.Find(id, name))
 			return name;
 
-		return "unknown";
+		return string.Format("unknown_%1", id);
 	}
 }
 #endif

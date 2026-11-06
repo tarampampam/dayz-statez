@@ -1,15 +1,16 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
 /**
-    \brief Per-player metrics collector.
-    \details Caches metric instances and label sets. Updated during scrape.
+    \brief Per-player data collector.
+    \details Stores plain fields updated during scrape. Fills snapshot on demand.
 */
-class MetricZ_PlayerMetrics : MetricZ_EntityMetricsBase
+class MetricZ_PlayerMetrics
 {
 	// Spawn timestamp in seconds
 	protected int m_InitTick;
@@ -17,305 +18,133 @@ class MetricZ_PlayerMetrics : MetricZ_EntityMetricsBase
 	// Ping & Throttle
 	protected int m_PingMinWindow = -1; //!< Min ping window.
 	protected int m_PingMaxWindow = -1; //!< Max ping window.
-	protected int m_ThrottleWindow = -1; //!< Throttle window.
+	protected float m_ThrottleWindow = -1.0; //!< Throttle window.
 	protected float m_SampleAccTime; //!< Sample accumulation time.
-
-	// Extra labels for the player.
-	protected string m_LabelsExtra;
 
 	// Parent player instance.
 	protected PlayerBase m_Player;
 
-	// stats
-	protected ref MetricZ_MetricInt m_IsLoaded;
-	protected ref MetricZ_MetricFloat m_Health;
-	protected ref MetricZ_MetricFloat m_Blood;
-	protected ref MetricZ_MetricFloat m_Shock;
-	protected ref MetricZ_MetricFloat m_Energy;
-	protected ref MetricZ_MetricFloat m_Water;
-	protected ref MetricZ_MetricFloat m_Toxicity;
-	protected ref MetricZ_MetricFloat m_TempC;
-	protected ref MetricZ_MetricFloat m_Weight;
-	protected ref MetricZ_MetricFloat m_Wetness;
-	protected ref MetricZ_MetricFloat m_LifeSeconds;
+	// vitals
+	int m_IsLoaded;
+	float m_Health;
+	float m_Blood;
+	float m_Shock;
+	float m_Energy;
+	float m_Water;
+	float m_Toxicity;
+	float m_TempC;
+	float m_Weight;
+	float m_Wetness;
+	float m_LifeSeconds;
 
 	// position
-	protected ref MetricZ_MetricFloat m_PosX;
-	protected ref MetricZ_MetricFloat m_PosY;
-	protected ref MetricZ_MetricFloat m_PosZ;
-	protected ref MetricZ_MetricFloat m_Yaw;
+	float m_PosX;
+	float m_PosY;
+	float m_PosZ;
+	float m_Yaw;
 
-	// identity
-	protected ref MetricZ_MetricInt m_PingMin;
-	protected ref MetricZ_MetricInt m_PingMax;
-	protected ref MetricZ_MetricFloat m_Throttle;
+	// network
+	int m_PingMin;
+	int m_PingMax;
+	float m_Throttle;
 
-	// extra stats
-	protected ref MetricZ_MetricInt m_AgentsCount;
-	protected ref MetricZ_MetricInt m_BleedingSources;
-	protected ref MetricZ_MetricInt m_ImmunityBoosted;
-	protected ref MetricZ_MetricInt m_Unconscious;
-	protected ref MetricZ_MetricInt m_Restrained;
-	protected ref MetricZ_MetricInt m_GodMode;
+	// states
+	int m_AgentsCount;
+	int m_BleedingSources;
+	int m_ImmunityBoosted;
+	int m_Unconscious;
+	int m_Restrained;
+	int m_GodMode;
 
 	// analytics
-	protected ref MetricZ_MetricFloat m_StatPlaytimeSeconds;
-	protected ref MetricZ_MetricFloat m_StatDistanceMeters;
-	protected ref MetricZ_MetricFloat m_StatLongestSurvivorHitMeters;
-	protected ref MetricZ_MetricInt m_StatPlayersKilledTotal;
-	protected ref MetricZ_MetricInt m_StatInfectedKilledTotal;
+	float m_StatPlaytimeSeconds;
+	float m_StatDistanceMeters;
+	float m_StatLongestHitMeters;
+	int m_StatPlayersKilled;
+	int m_StatInfectedKilled;
+
+	// identity (read once identity becomes available)
+	protected string m_SteamId;
+	protected string m_Guid;
+	protected string m_Name;
+	protected string m_BloodType;
+	protected string m_Gender;
+	protected string m_CharacterType;
 
 	/**
-	    \brief Constructor. Initializes metric instances and spawn tick.
+	    \brief Constructor. Records spawn tick.
 	*/
 	void MetricZ_PlayerMetrics()
 	{
-		m_InitTick = g_Game.GetTickTime(); // seconds
-
-		// vitals
-		m_IsLoaded = new MetricZ_MetricInt(
-		    "player_loaded",
-		    "Is player loaded (extra labels holder)",
-		    MetricZ_MetricType.GAUGE);
-		m_Health = new MetricZ_MetricFloat(
-		    "player_health",
-		    "Player health 0..1",
-		    MetricZ_MetricType.GAUGE);
-		m_Blood = new MetricZ_MetricFloat(
-		    "player_blood",
-		    "Player blood 0..1",
-		    MetricZ_MetricType.GAUGE);
-		m_Shock = new MetricZ_MetricFloat(
-		    "player_shock",
-		    "Player shock 0..1",
-		    MetricZ_MetricType.GAUGE);
-		m_Energy = new MetricZ_MetricFloat(
-		    "player_energy",
-		    "Player energy 0..1",
-		    MetricZ_MetricType.GAUGE);
-		m_Water = new MetricZ_MetricFloat(
-		    "player_water",
-		    "Player hydration 0..1",
-		    MetricZ_MetricType.GAUGE);
-		m_Toxicity = new MetricZ_MetricFloat(
-		    "player_toxicity",
-		    "Player toxicity 0..1",
-		    MetricZ_MetricType.GAUGE);
-		m_TempC = new MetricZ_MetricFloat(
-		    "player_temperature_celsius",
-		    "Player body temperature in celsius",
-		    MetricZ_MetricType.GAUGE);
-		m_Weight = new MetricZ_MetricFloat(
-		    "player_weight",
-		    "Player total weight in grams",
-		    MetricZ_MetricType.GAUGE);
-		m_Wetness = new MetricZ_MetricFloat(
-		    "player_wetness",
-		    "Player wetness 0..1",
-		    MetricZ_MetricType.GAUGE);
-		m_LifeSeconds = new MetricZ_MetricFloat(
-		    "player_lifetime_seconds",
-		    "Player lifetime since spawn or load in seconds",
-		    MetricZ_MetricType.GAUGE);
-
-		// position
-		if (!MetricZ_Config.Get().disabled_metrics.positions) {
-			m_PosX = new MetricZ_MetricFloat(
-			    "player_position_x",
-			    "Player world X",
-			    MetricZ_MetricType.GAUGE);
-			m_PosZ = new MetricZ_MetricFloat(
-			    "player_position_z",
-			    "Player world Z",
-			    MetricZ_MetricType.GAUGE);
-
-			if (!MetricZ_Config.Get().disabled_metrics.positions_height)
-				m_PosY = new MetricZ_MetricFloat(
-				    "player_position_y",
-				    "Player world Y",
-				    MetricZ_MetricType.GAUGE);
-
-			if (!MetricZ_Config.Get().disabled_metrics.positions_yaw)
-				m_Yaw = new MetricZ_MetricFloat(
-				    "player_orientation",
-				    "Player yaw degrees",
-				    MetricZ_MetricType.GAUGE);
-		}
-
-		// identity
-		m_PingMin = new MetricZ_MetricInt(
-		    "player_network_ping_min",
-		    "Player network ping min",
-		    MetricZ_MetricType.GAUGE);
-		m_PingMax = new MetricZ_MetricInt(
-		    "player_network_ping_max",
-		    "Player network ping max",
-		    MetricZ_MetricType.GAUGE);
-		m_Throttle = new MetricZ_MetricFloat(
-		    "player_network_throttle",
-		    "Fraction of outgoing bandwidth throttled since last update 0..1",
-		    MetricZ_MetricType.GAUGE);
-
-		// extra stats
-		m_AgentsCount = new MetricZ_MetricInt(
-		    "player_agents_active",
-		    "Number of active disease agents affecting the player",
-		    MetricZ_MetricType.GAUGE);
-		m_BleedingSources = new MetricZ_MetricInt(
-		    "player_bleeding_active",
-		    "Number of active bleeding sources on player",
-		    MetricZ_MetricType.GAUGE);
-		m_ImmunityBoosted = new MetricZ_MetricInt(
-		    "player_immunity_boosted",
-		    "Immunity boosted (0/1)",
-		    MetricZ_MetricType.GAUGE);
-		m_Unconscious = new MetricZ_MetricInt(
-		    "player_unconscious",
-		    "Is unconscious (0/1)",
-		    MetricZ_MetricType.GAUGE);
-		m_Restrained = new MetricZ_MetricInt(
-		    "player_restrained",
-		    "Is restrained (0/1)",
-		    MetricZ_MetricType.GAUGE);
-		m_GodMode = new MetricZ_MetricInt(
-		    "player_godmode",
-		    "Damage disabled (0/1)",
-		    MetricZ_MetricType.GAUGE);
-
-		// analytics
-		m_StatPlaytimeSeconds = new MetricZ_MetricFloat(
-		    "player_stat_playtime_seconds",
-		    "Analytics playtime",
-		    MetricZ_MetricType.GAUGE);
-		m_StatDistanceMeters = new MetricZ_MetricFloat(
-		    "player_stat_distance_meters",
-		    "Analytics distance",
-		    MetricZ_MetricType.GAUGE);
-		m_StatLongestSurvivorHitMeters = new MetricZ_MetricFloat(
-		    "player_stat_longest_survivor_hit_m",
-		    "Analytics longest survivor hit",
-		    MetricZ_MetricType.GAUGE);
-		m_StatPlayersKilledTotal = new MetricZ_MetricInt(
-		    "player_stat_players_killed",
-		    "Analytics players killed total",
-		    MetricZ_MetricType.COUNTER);
-		m_StatInfectedKilledTotal = new MetricZ_MetricInt(
-		    "player_stat_infected_killed",
-		    "Analytics infected killed total",
-		    MetricZ_MetricType.COUNTER);
+		m_InitTick = g_Game.GetTickTime();
 	}
 
 	/**
-	    \brief One-time registry fill.
+	    \brief One-time init with player reference.
 	*/
 	void Init(PlayerBase player)
 	{
 		if (!player || player.IsDamageDestroyed())
 			return;
 
-		if (m_Registry.Count() > 0)
-			return;
-
 		m_Player = player;
-
-		m_Registry.Insert(m_IsLoaded);
-		m_Registry.Insert(m_Health);
-		m_Registry.Insert(m_Blood);
-		m_Registry.Insert(m_Shock);
-		m_Registry.Insert(m_Energy);
-		m_Registry.Insert(m_Water);
-		m_Registry.Insert(m_Toxicity);
-		m_Registry.Insert(m_TempC);
-		m_Registry.Insert(m_Weight);
-		m_Registry.Insert(m_Wetness);
-		m_Registry.Insert(m_LifeSeconds);
-
-		if (!MetricZ_Config.Get().disabled_metrics.positions) {
-			m_Registry.Insert(m_PosX);
-			m_Registry.Insert(m_PosZ);
-
-			if (!MetricZ_Config.Get().disabled_metrics.positions_height)
-				m_Registry.Insert(m_PosY);
-
-			if (!MetricZ_Config.Get().disabled_metrics.positions_yaw)
-				m_Registry.Insert(m_Yaw);
-		}
-
-		m_Registry.Insert(m_PingMin);
-		m_Registry.Insert(m_PingMax);
-		m_Registry.Insert(m_Throttle);
-
-		m_Registry.Insert(m_AgentsCount);
-		m_Registry.Insert(m_BleedingSources);
-		m_Registry.Insert(m_ImmunityBoosted);
-		m_Registry.Insert(m_Unconscious);
-		m_Registry.Insert(m_Restrained);
-		m_Registry.Insert(m_GodMode);
-
-		m_Registry.Insert(m_StatPlaytimeSeconds);
-		m_Registry.Insert(m_StatDistanceMeters);
-		m_Registry.Insert(m_StatLongestSurvivorHitMeters);
-		m_Registry.Insert(m_StatPlayersKilledTotal);
-		m_Registry.Insert(m_StatInfectedKilledTotal);
-
-		SetLabels();
 	}
 
 	/**
-	    \brief Update all metrics from the player state.
+	    \brief Update all fields from the player state.
 	*/
-	override void Update()
+	void Update()
 	{
-		if (!m_Player || m_Registry.Count() < 1)
+		if (!m_Player)
 			return;
 
-		// if no identity on init try recreate labels
-		if (m_Labels == string.Empty)
-			SetLabels();
+		// resolve identity lazily
+		if (m_SteamId == string.Empty)
+			FetchIdentity();
 
 		// vitals
-		m_IsLoaded.Set(MetricZ_LabelUtils.Bool(m_Player.IsPlayerLoaded()));
-		m_Health.Set(m_Player.GetHealth01("", "Health"));
-		m_Blood.Set(m_Player.GetHealth01("", "Blood"));
-		m_Shock.Set(m_Player.GetHealth01("", "Shock"));
-		m_Energy.Set(m_Player.GetStatEnergy().Get() / m_Player.GetStatEnergy().GetMax());
-		m_Water.Set(m_Player.GetStatWater().Get() / m_Player.GetStatWater().GetMax());
-		m_Toxicity.Set(m_Player.GetStatToxicity().Get() / m_Player.GetStatToxicity().GetMax());
-		m_TempC.Set(m_Player.GetTemperature());
-		m_Weight.Set(m_Player.GetPlayerLoad());
-		m_Wetness.Set(m_Player.GetStatWet().Get());
-		m_LifeSeconds.Set(g_Game.GetTickTime() - m_InitTick);
+		m_IsLoaded = MetricZ_LabelUtils.Bool(m_Player.IsPlayerLoaded());
+		m_Health = m_Player.GetHealth01("", "Health");
+		m_Blood = m_Player.GetHealth01("", "Blood");
+		m_Shock = m_Player.GetHealth01("", "Shock");
+		m_Energy = m_Player.GetStatEnergy().Get() / m_Player.GetStatEnergy().GetMax();
+		m_Water = m_Player.GetStatWater().Get() / m_Player.GetStatWater().GetMax();
+		m_Toxicity = m_Player.GetStatToxicity().Get() / m_Player.GetStatToxicity().GetMax();
+		m_TempC = m_Player.GetTemperature();
+		m_Weight = m_Player.GetPlayerLoad();
+		m_Wetness = m_Player.GetStatWet().Get();
+		m_LifeSeconds = g_Game.GetTickTime() - m_InitTick;
 
 		// position
 		if (!MetricZ_Config.Get().disabled_metrics.positions) {
-			vector pos = MetricZ_Geo.GetPosition(m_Player);
-			m_PosX.Set(pos[0]);
-			m_PosZ.Set(pos[2]);
+			vector pos = m_Player.GetPosition();
+			m_PosX = pos[0];
+			m_PosZ = pos[2];
 
 			if (!MetricZ_Config.Get().disabled_metrics.positions_height)
-				m_PosY.Set(pos[1]);
+				m_PosY = pos[1];
 
 			if (!MetricZ_Config.Get().disabled_metrics.positions_yaw)
-				m_Yaw.Set(m_Player.GetOrientation()[0]);
+				m_Yaw = m_Player.GetOrientation()[0];
 		}
 
 		// ping & throttle
 		UpdateNetwork();
 
-		// base states
-		m_AgentsCount.Set(MetricZ_LabelUtils.BitsCount(m_Player.GetAgents()));
-		m_BleedingSources.Set(MetricZ_LabelUtils.BitsCount(m_Player.GetBleedingBits()));
-		m_ImmunityBoosted.Set(MetricZ_LabelUtils.Bool(m_Player.m_ImmunityBoosted));
-		m_Unconscious.Set(MetricZ_LabelUtils.Bool(m_Player.IsUnconscious()));
-		m_Restrained.Set(MetricZ_LabelUtils.Bool(m_Player.IsRestrained()));
-		m_GodMode.Set(MetricZ_LabelUtils.Bool(!m_Player.GetAllowDamage()));
+		// states
+		m_AgentsCount = MetricZ_LabelUtils.BitsCount(m_Player.GetAgents());
+		m_BleedingSources = MetricZ_LabelUtils.BitsCount(m_Player.GetBleedingBits());
+		m_ImmunityBoosted = MetricZ_LabelUtils.Bool(m_Player.m_ImmunityBoosted);
+		m_Unconscious = MetricZ_LabelUtils.Bool(m_Player.IsUnconscious());
+		m_Restrained = MetricZ_LabelUtils.Bool(m_Player.IsRestrained());
+		m_GodMode = MetricZ_LabelUtils.Bool(!m_Player.GetAllowDamage());
 
 		// analytics
-		m_StatPlaytimeSeconds.Set(m_Player.StatGet(AnalyticsManagerServer.STAT_PLAYTIME));
-		m_StatDistanceMeters.Set(m_Player.StatGet(AnalyticsManagerServer.STAT_DISTANCE));
-		m_StatLongestSurvivorHitMeters.Set(m_Player.StatGet(AnalyticsManagerServer.STAT_LONGEST_SURVIVOR_HIT));
-		m_StatPlayersKilledTotal.Set(m_Player.StatGet(AnalyticsManagerServer.STAT_PLAYERS_KILLED));
-		m_StatInfectedKilledTotal.Set(m_Player.StatGet(AnalyticsManagerServer.STAT_INFECTED_KILLED));
+		m_StatPlaytimeSeconds = m_Player.StatGet(AnalyticsManagerServer.STAT_PLAYTIME);
+		m_StatDistanceMeters = m_Player.StatGet(AnalyticsManagerServer.STAT_DISTANCE);
+		m_StatLongestHitMeters = m_Player.StatGet(AnalyticsManagerServer.STAT_LONGEST_SURVIVOR_HIT);
+		m_StatPlayersKilled = m_Player.StatGet(AnalyticsManagerServer.STAT_PLAYERS_KILLED);
+		m_StatInfectedKilled = m_Player.StatGet(AnalyticsManagerServer.STAT_INFECTED_KILLED);
 	}
 
 	/**
@@ -348,91 +177,95 @@ class MetricZ_PlayerMetrics : MetricZ_EntityMetricsBase
 			m_PingMaxWindow = pMax;
 
 		if (throttle > 0 && (m_ThrottleWindow < 0 || throttle > m_ThrottleWindow))
-			m_ThrottleWindow = (int)throttle;
+			m_ThrottleWindow = throttle;
 	}
 
 	/**
-	    \brief Build and cache player label sets.
+	    \brief Fill a player snapshot with current field values.
+	    \param snap Snapshot instance to populate.
 	*/
-	override protected void SetLabels()
+	void ToSnapshot(MetricZ_PlayerSnapshot snap)
 	{
-		if (!m_Player || m_Labels != string.Empty)
+		if (!snap)
+			return;
+
+		snap.steam_id = m_SteamId;
+		snap.guid = m_Guid;
+		snap.name = m_Name;
+		snap.blood_type = m_BloodType;
+		snap.gender = m_Gender;
+		snap.character_type = m_CharacterType;
+
+		snap.is_loaded = m_IsLoaded;
+		snap.health = m_Health;
+		snap.blood = m_Blood;
+		snap.shock = m_Shock;
+		snap.energy = m_Energy;
+		snap.water = m_Water;
+		snap.toxicity = m_Toxicity;
+		snap.temperature_celsius = m_TempC;
+		snap.weight_grams = m_Weight;
+		snap.wetness = m_Wetness;
+		snap.lifetime_seconds = m_LifeSeconds;
+
+		snap.pos_x = m_PosX;
+		snap.pos_z = m_PosZ;
+		snap.pos_y = m_PosY;
+		snap.orientation = m_Yaw;
+
+		snap.ping_min = m_PingMin;
+		snap.ping_max = m_PingMax;
+		snap.throttle = m_Throttle;
+
+		snap.agents_active = m_AgentsCount;
+		snap.bleeding_sources = m_BleedingSources;
+		snap.immunity_boosted = m_ImmunityBoosted;
+		snap.is_unconscious = m_Unconscious;
+		snap.is_restrained = m_Restrained;
+		snap.godmode = m_GodMode;
+
+		snap.stat_playtime_seconds = m_StatPlaytimeSeconds;
+		snap.stat_distance_meters = m_StatDistanceMeters;
+		snap.stat_longest_hit_meters = m_StatLongestHitMeters;
+		snap.stat_players_killed = m_StatPlayersKilled;
+		snap.stat_infected_killed = m_StatInfectedKilled;
+	}
+
+	/**
+	    \brief Read identity fields from the player (called lazily).
+	*/
+	protected void FetchIdentity()
+	{
+		if (!m_Player)
 			return;
 
 		PlayerIdentity identity = m_Player.GetIdentity();
 		if (!identity)
 			return;
 
-		map<string, string> labels = new map<string, string>();
-
-		labels.Insert("steam_id", identity.GetPlainId());
-		m_Labels = MetricZ_LabelUtils.MakeLabels(labels);
-
-		string playerType = m_Player.GetType();
-		playerType.TrimInPlace();
+		m_SteamId = identity.GetPlainId();
+		m_Guid = identity.GetId();
+		m_Name = identity.GetName();
 
 		bool _p;
 		string _t;
-		string bloodType = BloodTypes.GetBloodTypeName(m_Player.GetStatBloodType().Get(), _t, _p);
-
-		labels.Insert("guid", identity.GetId());
-
-		string name = identity.GetName();
-		if (name != string.Empty)
-			labels.Insert("name", name);
-
-		if (bloodType != string.Empty)
-			labels.Insert("blood", bloodType);
+		m_BloodType = BloodTypes.GetBloodTypeName(m_Player.GetStatBloodType().Get(), _t, _p);
 
 		if (m_Player.IsMale()) {
-			playerType.Replace("SurvivorM_", "");
-			labels.Insert("gender", "male");
+			m_Gender = "male";
+			m_CharacterType = m_Player.GetType();
+			m_CharacterType.Replace("SurvivorM_", "");
 		} else {
-			playerType.Replace("SurvivorF_", "");
-			labels.Insert("gender", "female");
+			m_Gender = "female";
+			m_CharacterType = m_Player.GetType();
+			m_CharacterType.Replace("SurvivorF_", "");
 		}
 
-		if (playerType != string.Empty)
-			labels.Insert("type", playerType);
-
-		m_LabelsExtra = MetricZ_LabelUtils.MakeLabels(labels);
-
-		ApplyLabelsToRegistry();
+		m_CharacterType.TrimInPlace();
 	}
 
 	/**
-	    \brief Set labels direct to metric with execute SetLabels() for each metric in registry
-	*/
-	override protected void ApplyLabelsToRegistry()
-	{
-		if (m_Registry.Count() == 0)
-			return;
-
-		foreach (MetricZ_MetricBase metric : m_Registry) {
-			if (metric == m_IsLoaded)
-				metric.SetLabels(m_LabelsExtra);
-			else
-				metric.SetLabels(m_Labels);
-		}
-	}
-
-	/**
-	    \brief Select a set of labels for a specific metric.
-	*/
-	override protected string LabelsFor(MetricZ_MetricBase metric)
-	{
-		if (metric == m_IsLoaded)
-			return m_LabelsExtra;
-
-		return m_Labels;
-	}
-
-	/**
-	    \brief Flush sampled network window into metrics.
-	    \details
-	      - Uses per-frame window samples (min/max/throttle) if present.
-	      - Falls back to identity GetPingMin/Max and GetOutputThrottle if window is empty.
-	      - Normalizes inconsistent values (max < min) and resets window for next scrape.
+	    \brief Flush sampled network window into fields.
 	*/
 	protected void UpdateNetwork()
 	{
@@ -443,7 +276,6 @@ class MetricZ_PlayerMetrics : MetricZ_EntityMetricsBase
 		int pMax = 0;
 		float throttle = 0.0;
 
-		// prefer window samples collected via SampleNetwork()
 		if (m_PingMinWindow >= 0)
 			pMin = m_PingMinWindow;
 		if (m_PingMaxWindow >= 0)
@@ -451,7 +283,7 @@ class MetricZ_PlayerMetrics : MetricZ_EntityMetricsBase
 		if (m_ThrottleWindow >= 0.0)
 			throttle = m_ThrottleWindow;
 
-		// fallback (but localhost connection with real 0 ping may collect it twice)
+		// fallback to current identity values
 		if (pMin <= 0 && pMax <= 0) {
 			PlayerIdentity idp = m_Player.GetIdentity();
 			if (idp) {
@@ -461,15 +293,13 @@ class MetricZ_PlayerMetrics : MetricZ_EntityMetricsBase
 			}
 		}
 
-		// normalize noise
 		if (pMax < pMin)
 			pMax = pMin;
 
-		m_PingMin.Set(pMin);
-		m_PingMax.Set(pMax);
-		m_Throttle.Set(throttle);
+		m_PingMin = pMin;
+		m_PingMax = pMax;
+		m_Throttle = throttle;
 
-		// reset window for next scrape interval
 		m_PingMinWindow = -1;
 		m_PingMaxWindow = -1;
 		m_ThrottleWindow = -1.0;

@@ -1,10 +1,24 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
+
+class MetricZ_ZombieStatsDTO
+{
+	void MetricZ_ZombieStatsDTO()
+	{
+		by_type = new map<string, int>();
+		by_state = new map<string, int>();
+	}
+
+	ref map<string, int> by_type;
+	ref map<string, int> by_state;
+}
+
 /**
     \brief Infected live gauges.
     \details
@@ -14,21 +28,9 @@
 class MetricZ_ZombieStats
 {
 	static const int MINDSTATE_DEAD = 1000; //!< Synthetic mind-state id for dead infected
-	protected static ref map<int, int> s_CountByType = new map<int, int>(); //!< State -> current infected count.
+	protected static ref map<int, int> s_CountByState = new map<int, int>(); //!< State -> current infected count.
 	protected static ref map<int, string> s_MindStates; //!< State -> human-readable name. Built lazily.
 	protected static ref map<string, int> s_TypeStorage = new map<string, int>(); //!< Type -> current infected count.
-	protected static ref map<string, string> s_TypeLabels = new map<string, string>(); //!< Type -> cached labels.
-
-	// Metric: Infected count by mind state.
-	protected static ref MetricZ_MetricInt s_MetricMindState = new MetricZ_MetricInt(
-	    "infected_mind_state",
-	    "Infected count by mind state",
-	    MetricZ_MetricType.GAUGE);
-	// Metric: Infected count by zombie type.
-	protected static ref MetricZ_MetricInt s_MetricCountByType = new MetricZ_MetricInt(
-	    "infected_by_type",
-	    "Infected count by zombie type",
-	    MetricZ_MetricType.GAUGE);
 
 	/**
 	    \brief Fill name map once.
@@ -60,10 +62,10 @@ class MetricZ_ZombieStats
 			return;
 
 		int v;
-		if (s_CountByType.Find(state, v))
-			s_CountByType.Set(state, Math.Max(v + delta, 0));
+		if (s_CountByState.Find(state, v))
+			s_CountByState.Set(state, Math.Max(v + delta, 0));
 		else if (delta > 0)
-			s_CountByType.Insert(state, delta);
+			s_CountByState.Insert(state, delta);
 	}
 
 	/**
@@ -81,19 +83,12 @@ class MetricZ_ZombieStats
 		int v;
 		if (s_TypeStorage.Find(type, v)) {
 			v = v + delta;
-			if (v <= 0) {
+			if (v <= 0)
 				s_TypeStorage.Remove(type);
-				s_TypeLabels.Remove(type);
-			} else
+			else
 				s_TypeStorage.Set(type, v);
-		} else if (delta > 0) {
+		} else if (delta > 0)
 			s_TypeStorage.Insert(type, delta);
-
-			// build labels once per type
-			map<string, string> labels = new map<string, string>();
-			labels.Insert("type", type);
-			s_TypeLabels.Insert(type, MetricZ_LabelUtils.MakeLabels(labels));
-		}
 	}
 
 	/**
@@ -105,8 +100,7 @@ class MetricZ_ZombieStats
 		if (!zombie)
 			return;
 
-		string type = zombie.MetricZ_GetLabelTypeName();
-		AddType(type, 1);
+		AddType(zombie.MetricZ_GetLabelTypeName(), 1);
 	}
 
 	/**
@@ -118,15 +112,13 @@ class MetricZ_ZombieStats
 	{
 		AddState(state, -1);
 
-		if (zombie) {
-			string type = zombie.MetricZ_GetLabelTypeName();
-			AddType(type, -1);
-		}
+		if (zombie)
+			AddType(zombie.MetricZ_GetLabelTypeName(), -1);
 	}
 
 	/**
 	    \brief Move one unit from old to new mind state.
-	    \details Ignores unchanged states. Never goes below zero.
+	    \details Ignores unchanged states.
 	    \param oldState Old mind state id
 	    \param newState New mind state id
 	*/
@@ -152,58 +144,25 @@ class MetricZ_ZombieStats
 	}
 
 	/**
-	    \brief Emit HELP/TYPE and all state/type samples.
-	    \param sink MetricZ_SinkBase metric sink instance
+	    \brief Serialize all zombie data to JSON.
+	    \param json Output JSON string.
 	*/
-	static void Flush(MetricZ_SinkBase sink)
+	static void BuildJson(out string json)
 	{
-		if (!sink)
-			return;
+		EnsureNames();
 
-		bool hasStates = (s_CountByType.Count() > 0);
-		bool hasTypes = (s_TypeStorage.Count() > 0);
+		MetricZ_ZombieStatsDTO dto = new MetricZ_ZombieStatsDTO();
 
-		if (!hasStates && !hasTypes)
-			return;
-
-		// mind states
-		if (hasStates) {
-			EnsureNames();
-			s_MetricMindState.WriteHeaders(sink);
-
-			foreach (int id, int val : s_CountByType) {
-				s_MetricMindState.Set(val);
-
-				string name = "unknown";
-				s_MindStates.Find(id, name);
-
-				map<string, string> mindLabels = new map<string, string>();
-				mindLabels.Insert("state_id", id.ToString());
-				mindLabels.Insert("state", name);
-
-				s_MetricMindState.Flush(sink, MetricZ_LabelUtils.MakeLabels(mindLabels));
-			}
+		foreach (int id, int stateCount : s_CountByState) {
+			string stateName = "unknown";
+			s_MindStates.Find(id, stateName);
+			dto.by_state.Insert(stateName, stateCount);
 		}
 
-		// zombie types
-		if (hasTypes) {
-			s_MetricCountByType.WriteHeaders(sink);
+		foreach (string type, int typeCount : s_TypeStorage)
+			dto.by_type.Insert(type, typeCount);
 
-			foreach (string type, int count : s_TypeStorage) {
-				s_MetricCountByType.Set(count);
-
-				string typeLabels = s_TypeLabels.Get(type);
-				if (typeLabels == string.Empty) {
-					// safety: rebuild labels if cache is empty
-					map<string, string> tmp = new map<string, string>();
-					tmp.Insert("type", type);
-					typeLabels = MetricZ_LabelUtils.MakeLabels(tmp);
-					s_TypeLabels.Set(type, typeLabels);
-				}
-
-				s_MetricCountByType.Flush(sink, typeLabels);
-			}
-		}
+		JsonSerializer().WriteToString(dto, false, json);
 	}
 }
 #endif

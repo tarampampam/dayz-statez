@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -29,9 +30,9 @@ modded class PlayerBase
 #ifdef EXPANSIONMODAI
 		if (IsInherited(eAIBase)) {
 			if (IsInherited(eAINPCBase))
-				MetricZ_Storage.s_ExpansionAINPC.Inc();
+				MetricZ_Storage.s_ExpansionAINPC += 1;
 			else
-				MetricZ_Storage.s_ExpansionAI.Inc();
+				MetricZ_Storage.s_ExpansionAI += 1;
 
 			return;
 		}
@@ -55,9 +56,9 @@ modded class PlayerBase
 #ifdef EXPANSIONMODAI
 			if (IsInherited(eAIBase)) {
 				if (IsInherited(eAINPCBase))
-					MetricZ_Storage.s_ExpansionAINPC.Dec();
+					MetricZ_Storage.s_ExpansionAINPC -= 1;
 				else
-					MetricZ_Storage.s_ExpansionAI.Dec();
+					MetricZ_Storage.s_ExpansionAI -= 1;
 			}
 #endif
 
@@ -81,9 +82,9 @@ modded class PlayerBase
 					MetricZ_WeaponStats.OnCreatureKilled(killer);
 
 				if (IsInherited(eAINPCBase))
-					MetricZ_Storage.s_ExpansionAINPCDeaths.Inc();
+					MetricZ_Storage.s_ExpansionAINPCDeaths += 1;
 				else
-					MetricZ_Storage.s_ExpansionAIDeaths.Inc();
+					MetricZ_Storage.s_ExpansionAIDeaths += 1;
 
 				super.EEKilled(killer);
 
@@ -92,7 +93,7 @@ modded class PlayerBase
 #endif
 
 			if (!MetricZ_Config.Get().disabled_metrics.players)
-				MetricZ_Storage.s_PlayersDeaths.Inc();
+				MetricZ_Storage.s_PlayersDeaths += 1;
 
 			if (!MetricZ_Config.Get().disabled_metrics.weapons && killer != this)
 				MetricZ_WeaponStats.OnPlayerKilled(killer);

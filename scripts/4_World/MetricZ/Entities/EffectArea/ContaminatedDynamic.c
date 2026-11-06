@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -15,7 +16,7 @@ modded class ContaminatedArea_Dynamic
 		super.EEOnCECreate();
 
 		if (m_DecayState == eAreaDecayStage.INIT)
-			MetricZ_Storage.s_Artillery.Inc();
+			MetricZ_Storage.s_Artillery += 1;
 	}
 }
 #endif

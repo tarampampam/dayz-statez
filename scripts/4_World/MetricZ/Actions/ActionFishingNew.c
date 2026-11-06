@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -13,7 +14,7 @@ modded class ActionFishingNew: ActionContinuousBase
 	*/
 	override void OnEndInput(ActionData action_data)
 	{
-		MetricZ_Storage.s_FishingAttempts.Inc();
+		MetricZ_Storage.s_FishingAttempts += 1;
 
 		super.OnEndInput(action_data);
 	}
@@ -27,7 +28,7 @@ modded class ActionFishingNew: ActionContinuousBase
 	{
 		EntityAI catch = super.TrySpawnCatch(action_data);
 		if (catch)
-			MetricZ_Storage.s_FishingCatches.Inc();
+			MetricZ_Storage.s_FishingCatches += 1;
 
 		return catch;
 	}

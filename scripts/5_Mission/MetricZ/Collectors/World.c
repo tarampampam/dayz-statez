@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/logz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -20,13 +21,19 @@ class MetricZ_CollectorWorld : MetricZ_CollectorBase
 		return MetricZ_Config.IsLoaded();
 	}
 
-	override void Flush(MetricZ_SinkBase sink)
+	override void Flush()
 	{
 		if (!MetricZ_Config.IsLoaded())
 			return;
 
 		MetricZ_Storage.Update();
-		MetricZ_Storage.Flush(sink);
+
+		MetricZ_WorldSnapshot snap = new MetricZ_WorldSnapshot();
+		MetricZ_Storage.FillSnapshot(snap);
+
+		string json;
+		JsonSerializer().WriteToString(snap, false, json);
+		MetricZ_JsonWriter.Write(MetricZ_Config.Get().json.export_dir, GetName(), json);
 	}
 }
 #endif

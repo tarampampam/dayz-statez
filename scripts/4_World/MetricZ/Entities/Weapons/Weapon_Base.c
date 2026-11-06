@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -26,7 +27,7 @@ modded class Weapon_Base
 		if (!MetricZ_Config.Get().disabled_metrics.weapons)
 			MetricZ_WeaponStats.OnSpawn(this);
 
-		MetricZ_Storage.s_Weapons.Inc();
+		MetricZ_Storage.s_Weapons += 1;
 	}
 
 	/**
@@ -35,7 +36,7 @@ modded class Weapon_Base
 	override void EEDelete(EntityAI parent)
 	{
 		if (MetricZ_Config.IsLoaded()) {
-			MetricZ_Storage.s_Weapons.Dec();
+			MetricZ_Storage.s_Weapons -= 1;
 
 			if (!MetricZ_Config.Get().disabled_metrics.weapons)
 				MetricZ_WeaponStats.OnDelete(this);

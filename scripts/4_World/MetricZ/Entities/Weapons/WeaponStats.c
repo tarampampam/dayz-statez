@@ -1,10 +1,28 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
+
+class MetricZ_WeaponStatsDTO
+{
+	void MetricZ_WeaponStatsDTO()
+	{
+		shots = new map<string, int>();
+		world_count = new map<string, int>();
+		player_kills = new map<string, int>();
+		creature_kills = new map<string, int>();
+	}
+
+	ref map<string, int> shots;
+	ref map<string, int> world_count;
+	ref map<string, int> player_kills;
+	ref map<string, int> creature_kills;
+}
+
 /**
     \brief Weapon shot and live-count aggregator.
     \details
@@ -14,69 +32,10 @@
 */
 class MetricZ_WeaponStats
 {
-	protected static bool s_CacheLoaded;
-
 	protected static ref map<string, int> s_ShotsByWeapon = new map<string, int>(); //!< Total shots by weapon.
 	protected static ref map<string, int> s_CountByType = new map<string, int>(); //!< Live count by weapon type.
 	protected static ref map<string, int> s_PlayerKills = new map<string, int>(); //!< Player kills by source.
 	protected static ref map<string, int> s_CreatureKills = new map<string, int>(); //!< Creature kills by source.
-
-	// weapon -> cached labels `{world=...,host=...,instance_id=...,weapon=...}`
-	protected static ref map<string, string> s_LabelsByWeapon = new map<string, string>();
-
-	// metrics
-	protected static ref MetricZ_MetricInt s_MetricShotsByType = new MetricZ_MetricInt(
-	    "weapon_shots",
-	    "Shots by weapon base type",
-	    MetricZ_MetricType.COUNTER);
-	protected static ref MetricZ_MetricInt s_MetricCountByType = new MetricZ_MetricInt(
-	    "weapons_by_type",
-	    "Weapons in world grouped by canonical type",
-	    MetricZ_MetricType.GAUGE);
-	protected static ref MetricZ_MetricInt s_MetricPlayerKills = new MetricZ_MetricInt(
-	    "player_killed_by",
-	    "Count of players killed by source",
-	    MetricZ_MetricType.COUNTER);
-	protected static ref MetricZ_MetricInt s_MetricCreatureKills = new MetricZ_MetricInt(
-	    "creature_killed_by",
-	    "Count of creatures (Infected/Animals/AI) killed by source",
-	    MetricZ_MetricType.COUNTER);
-
-	/**
-	    \brief Load cache of weapon types and killers objects for label persistency.
-	*/
-	static void LoadCache()
-	{
-		if (s_CacheLoaded || !MetricZ_Config.IsLoaded() || MetricZ_Config.Get().disabled_metrics.weapons)
-			return;
-
-		s_CacheLoaded = true;
-
-		array<string> knownWeapons = MetricZ_PersistentCache.GetKeys(MetricZ_CacheKey.WEAPON_TYPES);
-		if (knownWeapons) {
-			foreach (string weapon : knownWeapons) {
-				if (!s_ShotsByWeapon.Contains(weapon)) {
-					s_ShotsByWeapon.Insert(weapon, 0);
-					LabelsFor(weapon);
-				}
-			}
-		}
-
-		array<string> knownKillers = MetricZ_PersistentCache.GetKeys(MetricZ_CacheKey.KILLER_OBJECT);
-		if (knownKillers) {
-			foreach (string killer : knownKillers) {
-				if (!s_PlayerKills.Contains(killer)) {
-					s_PlayerKills.Insert(killer, 0);
-					LabelsFor(killer);
-				}
-
-				if (!s_CreatureKills.Contains(killer)) {
-					s_CreatureKills.Insert(killer, 0);
-					LabelsFor(killer);
-				}
-			}
-		}
-	}
 
 	/**
 	    \brief Increment counters for a fired weapon.
@@ -87,9 +46,7 @@ class MetricZ_WeaponStats
 		if (!weapon)
 			return;
 
-		string type = weapon.MetricZ_GetLabelTypeName();
-		MetricZ_PersistentCache.Register(MetricZ_CacheKey.WEAPON_TYPES, type);
-		IncMap(s_ShotsByWeapon, type);
+		IncMap(s_ShotsByWeapon, weapon.MetricZ_GetLabelTypeName());
 	}
 
 	/**
@@ -101,9 +58,7 @@ class MetricZ_WeaponStats
 		if (!weapon)
 			return;
 
-		string type = weapon.MetricZ_GetLabelTypeName();
-		MetricZ_PersistentCache.Register(MetricZ_CacheKey.WEAPON_TYPES, type);
-		IncMap(s_CountByType, type);
+		IncMap(s_CountByType, weapon.MetricZ_GetLabelTypeName());
 	}
 
 	/**
@@ -115,9 +70,7 @@ class MetricZ_WeaponStats
 		if (!source)
 			return;
 
-		string type = ResolveSourceName(source);
-		MetricZ_PersistentCache.Register(MetricZ_CacheKey.KILLER_OBJECT, type);
-		IncMap(s_PlayerKills, type);
+		IncMap(s_PlayerKills, ResolveSourceName(source));
 	}
 
 	/**
@@ -129,9 +82,7 @@ class MetricZ_WeaponStats
 		if (!source)
 			return;
 
-		string type = ResolveSourceName(source);
-		MetricZ_PersistentCache.Register(MetricZ_CacheKey.KILLER_OBJECT, type);
-		IncMap(s_CreatureKills, type);
+		IncMap(s_CreatureKills, ResolveSourceName(source));
 	}
 
 	/**
@@ -157,76 +108,17 @@ class MetricZ_WeaponStats
 	}
 
 	/**
-	    \brief Flush all weapon metrics (shots, live counts, kills).
-	    \param sink MetricZ_SinkBase sink instance
+	    \brief Serialize all weapon data to JSON.
+	    \param json Output JSON string.
 	*/
-	static void Flush(MetricZ_SinkBase sink)
+	static void BuildJson(out string json)
 	{
-		if (!sink)
-			return;
-
-		// total shots + per-weapon shots
-		if (s_ShotsByWeapon.Count() > 0) {
-			s_MetricShotsByType.WriteHeaders(sink);
-
-			foreach (string key, int val : s_ShotsByWeapon) {
-				s_MetricShotsByType.Set(val);
-				s_MetricShotsByType.Flush(sink, LabelsFor(key));
-			}
-		}
-
-		// live weapons per type
-		if (s_CountByType.Count() > 0) {
-			s_MetricCountByType.WriteHeaders(sink);
-
-			foreach (string key2, int val2 : s_CountByType) {
-				s_MetricCountByType.Set(val2);
-				s_MetricCountByType.Flush(sink, LabelsFor(key2));
-			}
-		}
-
-		// player kills
-		if (s_PlayerKills.Count() > 0) {
-			s_MetricPlayerKills.WriteHeaders(sink);
-
-			foreach (string key3, int val3 : s_PlayerKills) {
-				s_MetricPlayerKills.Set(val3);
-				s_MetricPlayerKills.Flush(sink, LabelsFor(key3));
-			}
-		}
-
-		// creature kills
-		if (s_CreatureKills.Count() > 0) {
-			s_MetricCreatureKills.WriteHeaders(sink);
-
-			foreach (string key4, int val4 : s_CreatureKills) {
-				s_MetricCreatureKills.Set(val4);
-				s_MetricCreatureKills.Flush(sink, LabelsFor(key4));
-			}
-		}
-	}
-
-	/**
-	    \brief Get or build cached labels for a weapon type.
-	    \param type Normalized weapon/source name.
-	    \return string Formatted Prometheus labels.
-	*/
-	protected static string LabelsFor(string type)
-	{
-		string labels;
-		if (s_LabelsByWeapon && s_LabelsByWeapon.Find(type, labels) && labels != string.Empty)
-			return labels;
-
-		map<string, string> labelsMap = new map<string, string>();
-		labelsMap.Insert("weapon", type);
-		labels = MetricZ_LabelUtils.MakeLabels(labelsMap);
-
-		if (!s_LabelsByWeapon)
-			s_LabelsByWeapon = new map<string, string>();
-
-		s_LabelsByWeapon.Set(type, labels);
-
-		return labels;
+		MetricZ_WeaponStatsDTO dto = new MetricZ_WeaponStatsDTO();
+		dto.shots = s_ShotsByWeapon;
+		dto.world_count = s_CountByType;
+		dto.player_kills = s_PlayerKills;
+		dto.creature_kills = s_CreatureKills;
+		JsonSerializer().WriteToString(dto, false, json);
 	}
 
 	/**
@@ -294,21 +186,17 @@ class MetricZ_WeaponStats
 	}
 
 	/**
-	    \brief Helper to increment value in a specific map and pre-cache labels.
-	    \param metricsStore The registry map to update.
-	    \param key Normalized source key.
+	    \brief Helper to increment value in a map.
 	*/
-	protected static void IncMap(map<string, int> metricsStore, string key)
+	protected static void IncMap(map<string, int> store, string key)
 	{
 		int value;
-		if (metricsStore.Find(key, value)) {
-			metricsStore.Set(key, value + 1);
+		if (store.Find(key, value)) {
+			store.Set(key, value + 1);
 			return;
 		}
 
-		metricsStore.Insert(key, 1);
-		LabelsFor(key);
+		store.Insert(key, 1);
 	}
-
 }
 #endif

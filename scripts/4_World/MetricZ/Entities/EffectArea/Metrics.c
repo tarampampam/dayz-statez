@@ -1,83 +1,74 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
 /**
-    \brief Per-EffectArea metrics collector.
-    \details Caches metric instances and label sets. Updated during scrape.
+    \brief Per-EffectArea data collector.
+    \details Stores plain fields updated during scrape. Fills snapshot on demand.
 */
-class MetricZ_EffectAreaMetrics : MetricZ_EntityMetricsBase
+class MetricZ_EffectAreaMetrics
 {
-	protected EffectArea m_Area; //!< Parent EffectArea instance.
-	ref MetricZ_MetricFloat m_Radius; //!< Metric: Radius of the area.
-	ref MetricZ_MetricInt m_Insiders; //!< Metric: Count of players inside the area.
+	protected EffectArea m_Area;
+
+	string m_Type;
+	string m_ClassName;
+	float m_PosX;
+	float m_PosZ;
+	float m_Radius;
+	int m_Insiders;
 
 	/**
-	    \brief Constructor. Initializes metric instances and spawn tick.
-	*/
-	void MetricZ_EffectAreaMetrics()
-	{
-		m_Insiders = new MetricZ_MetricInt(
-		    "effect_area_insiders",
-		    "Count of players inside Effect Area",
-		    MetricZ_MetricType.GAUGE);
-	}
-
-	/**
-	    \brief One-time registry fill.
+	    \brief One-time init with area reference.
 	    \param area EffectArea instance to initialize metrics for.
 	*/
 	void Init(EffectArea area)
 	{
-		if (!area || m_Registry.Count() > 0)
+		if (!area || m_Area)
 			return;
 
 		m_Area = area;
+		m_Type = area.MetricZ_GetType();
+		m_ClassName = area.ClassName();
+		m_Radius = area.MetricZ_GetRadius();
 
-		m_Registry.Insert(m_Insiders);
-
-		SetLabels();
-	}
-
-	/**
-	    \brief Update all metrics from the EffectArea state.
-	*/
-	override void Update()
-	{
-		if (!m_Area || m_Registry.Count() < 1)
-			return;
-
-		m_Insiders.Set(m_Area.MetricZ_GetInsidersCount());
-	}
-
-	/**
-	    \brief Build and cache label sets using integer coordinates.
-	*/
-	override protected void SetLabels()
-	{
-		if (!m_Area || m_Labels != string.Empty)
-			return;
-
-		vector pos = m_Area.m_Position;
+		vector pos = area.m_Position;
 		if (pos == vector.Zero)
-			pos = m_Area.GetPosition();
+			pos = area.GetPosition();
 
-		float lon, lat;
-		MetricZ_Geo.GetLonLat(pos, lon, lat);
+		m_PosX = pos[0];
+		m_PosZ = pos[2];
+	}
 
-		map<string, string> labels = new map<string, string>();
-		labels.Insert("type", m_Area.MetricZ_GetType());
-		labels.Insert("class", m_Area.ClassName());
-		labels.Insert("longitude", lon.ToString());
-		labels.Insert("latitude", lat.ToString());
-		labels.Insert("radius", m_Area.MetricZ_GetRadius().ToString());
+	/**
+	    \brief Update all fields from the EffectArea state.
+	*/
+	void Update()
+	{
+		if (!m_Area)
+			return;
 
-		m_Labels = MetricZ_LabelUtils.MakeLabels(labels);
+		m_Insiders = m_Area.MetricZ_GetInsidersCount();
+	}
 
-		ApplyLabelsToRegistry();
+	/**
+	    \brief Fill an area snapshot with current field values.
+	    \param snap Snapshot instance to populate.
+	*/
+	void ToSnapshot(MetricZ_AreaSnapshot snap)
+	{
+		if (!snap)
+			return;
+
+		snap.type = m_Type;
+		snap.class_name = m_ClassName;
+		snap.pos_x = m_PosX;
+		snap.pos_z = m_PosZ;
+		snap.radius = m_Radius;
+		snap.insiders = m_Insiders;
 	}
 }
 #endif

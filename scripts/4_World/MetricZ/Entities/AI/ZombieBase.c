@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -29,7 +30,7 @@ modded class ZombieBase
 		if (!MetricZ_Config.IsLoaded())
 			return;
 
-		MetricZ_Storage.s_Infected.Inc();
+		MetricZ_Storage.s_Infected += 1;
 
 		if (!MetricZ_Config.Get().disabled_metrics.zombies)
 			MetricZ_ZombieStats.OnSpawn(this);
@@ -41,10 +42,10 @@ modded class ZombieBase
 	override void EEDelete(EntityAI parent)
 	{
 		if (MetricZ_Config.IsLoaded()) {
-			MetricZ_Storage.s_Infected.Dec();
+			MetricZ_Storage.s_Infected -= 1;
 
 			if (m_MetricZ_IsKilled)
-				MetricZ_Storage.s_InfectedCorpses.Dec();
+				MetricZ_Storage.s_InfectedCorpses -= 1;
 
 			if (!MetricZ_Config.Get().disabled_metrics.zombies)
 				MetricZ_ZombieStats.OnDelete(this, m_MetricZ_State);
@@ -62,9 +63,9 @@ modded class ZombieBase
 			m_MetricZ_IsKilled = true;
 
 			if (killer != this)
-				MetricZ_Storage.s_InfectedDeaths.Inc();
+				MetricZ_Storage.s_InfectedDeaths += 1;
 
-			MetricZ_Storage.s_InfectedCorpses.Inc();
+			MetricZ_Storage.s_InfectedCorpses += 1;
 
 			if (!MetricZ_Config.Get().disabled_metrics.zombies) {
 				MetricZ_ZombieStats.OnKilled(m_MetricZ_State);

@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -18,9 +19,9 @@ modded class Box_Base
 		super.EEInit();
 
 		if (GetType().IndexOf("AmmoBox") != -1)
-			MetricZ_Storage.s_AmmoBoxes.Inc();
+			MetricZ_Storage.s_AmmoBoxes += 1;
 		else
-			MetricZ_Storage.s_Boxes.Inc();
+			MetricZ_Storage.s_Boxes += 1;
 	}
 
 	/**
@@ -29,9 +30,9 @@ modded class Box_Base
 	override void EEDelete(EntityAI parent)
 	{
 		if (GetType().IndexOf("AmmoBox") != -1)
-			MetricZ_Storage.s_AmmoBoxes.Dec();
+			MetricZ_Storage.s_AmmoBoxes -= 1;
 		else
-			MetricZ_Storage.s_Boxes.Dec();
+			MetricZ_Storage.s_Boxes -= 1;
 
 		super.EEDelete(parent);
 	}

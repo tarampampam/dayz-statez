@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -17,14 +18,14 @@ modded class ItemBase
 	{
 		super.EEInit();
 
-		MetricZ_Storage.s_Items.Inc();
+		MetricZ_Storage.s_Items += 1;
 
 		if (IsInherited(ItemSuppressor))
-			MetricZ_Storage.s_Suppressors.Inc();
+			MetricZ_Storage.s_Suppressors += 1;
 		else if (IsInherited(ItemOptics))
-			MetricZ_Storage.s_Optics.Inc();
+			MetricZ_Storage.s_Optics += 1;
 		else if (IsInherited(CarWheel))
-			MetricZ_Storage.s_CarWheels.Inc();
+			MetricZ_Storage.s_CarWheels += 1;
 	}
 
 	/**
@@ -32,14 +33,14 @@ modded class ItemBase
 	*/
 	override void EEDelete(EntityAI parent)
 	{
-		MetricZ_Storage.s_Items.Dec();
+		MetricZ_Storage.s_Items -= 1;
 
 		if (IsInherited(ItemSuppressor))
-			MetricZ_Storage.s_Suppressors.Dec();
+			MetricZ_Storage.s_Suppressors -= 1;
 		else if (IsInherited(ItemOptics))
-			MetricZ_Storage.s_Optics.Dec();
+			MetricZ_Storage.s_Optics -= 1;
 		else if (IsInherited(CarWheel))
-			MetricZ_Storage.s_CarWheels.Dec();
+			MetricZ_Storage.s_CarWheels -= 1;
 
 		super.EEDelete(parent);
 	}

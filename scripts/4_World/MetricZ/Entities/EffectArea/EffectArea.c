@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -118,7 +119,7 @@ modded class EffectArea
 			return;
 
 		m_MetricZ_AreaInit = true;
-		MetricZ_Storage.s_EffectAreas.Inc();
+		MetricZ_Storage.s_EffectAreas += 1;
 
 		if (MetricZ_Config.Get().disabled_metrics.areas)
 			return;
@@ -145,7 +146,7 @@ modded class EffectArea
 			MetricZ_EffectAreaRegistry.Unregister(this);
 		}
 
-		MetricZ_Storage.s_EffectAreas.Dec();
+		MetricZ_Storage.s_EffectAreas -= 1;
 	}
 }
 #endif

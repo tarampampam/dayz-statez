@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
@@ -23,7 +24,7 @@ modded class TerritoryFlag
 		if (!MetricZ_Config.IsLoaded())
 			return;
 
-		MetricZ_Storage.s_TerritoryFlags.Inc();
+		MetricZ_Storage.s_TerritoryFlags += 1;
 
 		if (MetricZ_Config.Get().disabled_metrics.territories)
 			return;
@@ -45,7 +46,7 @@ modded class TerritoryFlag
 			MetricZ_TerritoryRegistry.Unregister(this);
 		}
 
-		MetricZ_Storage.s_TerritoryFlags.Dec();
+		MetricZ_Storage.s_TerritoryFlags -= 1;
 
 		super.EEDelete(parent);
 	}

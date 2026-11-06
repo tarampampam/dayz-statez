@@ -1,35 +1,28 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 
 #ifdef SERVER
 /**
-    \brief Helpers for ordered entity metrics output.
+    \brief Helpers for building JSON arrays from entity metrics.
 */
 class MetricZ_EntitiesWriter
 {
-	// Static buffers for Object Pooling
 	static ref array<Man> s_PlayersListBuffer = new array<Man>();
-	static ref array<ref MetricZ_PlayerMetrics> s_PlayerMetricsBuffer = new array<ref MetricZ_PlayerMetrics>();
-	static ref array<ref MetricZ_TransportMetrics> s_TransportMetricsBuffer = new array<ref MetricZ_TransportMetrics>();
-	static ref array<ref MetricZ_TerritoryMetrics> s_TerritoryMetricsBuffer = new array<ref MetricZ_TerritoryMetrics>();
-	static ref array<ref MetricZ_EffectAreaMetrics> s_AreaMetricsBuffer = new array<ref MetricZ_EffectAreaMetrics>();
 
 	/**
-	    \brief Flush all player metrics in interleaved order.
-	    \details For each metric index: write HELP/TYPE once, then values for all players.
-	    \param sink MetricZ_SinkBase sink instance
+	    \brief Build a JSON array of all online players.
+	    \param json Output JSON string (empty array if no players).
 	*/
-	static void FlushPlayers(MetricZ_SinkBase sink)
+	static void BuildPlayersJson(out string json)
 	{
-		if (!sink)
-			return;
-
-		s_PlayerMetricsBuffer.Clear();
 		s_PlayersListBuffer.Clear();
 		g_Game.GetPlayers(s_PlayersListBuffer);
+
+		array<ref MetricZ_PlayerSnapshot> snaps = new array<ref MetricZ_PlayerSnapshot>();
 
 		foreach (Man man : s_PlayersListBuffer) {
 			PlayerBase player;
@@ -41,42 +34,35 @@ class MetricZ_EntitiesWriter
 				continue;
 
 			pm.Update();
-			s_PlayerMetricsBuffer.Insert(pm);
+
+			MetricZ_PlayerSnapshot snap = new MetricZ_PlayerSnapshot();
+			pm.ToSnapshot(snap);
+			snaps.Insert(snap);
 		}
 
-		if (s_PlayerMetricsBuffer.Count() == 0)
+		if (snaps.Count() == 0) {
+			json = "[]";
 			return;
-
-		int metricsCount = s_PlayerMetricsBuffer[0].Count();
-		for (int i = 0; i < metricsCount; ++i) {
-			s_PlayerMetricsBuffer[0].WriteHeaderAt(sink, i);
-
-			foreach (MetricZ_PlayerMetrics pmCurrent : s_PlayerMetricsBuffer) {
-				if (i >= pmCurrent.Count())
-					continue;
-
-				MetricZ_MetricBase metric = pmCurrent.GetMetricDirect(i);
-				if (metric)
-					metric.Flush(sink);
-			}
 		}
+
+		JsonSerializer().WriteToString(snaps, false, json);
 	}
 
 	/**
-	    \brief Flush all transport metrics in interleaved order.
-	    \details For each metric index: write HELP/TYPE once, then values for all transport.
-	    \param sink MetricZ_SinkBase sink instance
+	    \brief Build a JSON array of all tracked transports.
+	    \param json Output JSON string (empty array if none).
 	*/
-	static void FlushTransport(MetricZ_SinkBase sink)
+	static void BuildTransportJson(out string json)
 	{
-		if (!sink)
-			return;
-
 		array<Transport> list = MetricZ_TransportRegistry.GetList();
-		if (!list || list.Count() == 0)
-			return;
 
-		s_TransportMetricsBuffer.Clear();
+		if (!list || list.Count() == 0) {
+			json = "[]";
+			return;
+		}
+
+		array<ref MetricZ_TransportSnapshot> snaps = new array<ref MetricZ_TransportSnapshot>();
+
 		foreach (Transport transport : list) {
 			if (!transport)
 				continue;
@@ -108,42 +94,35 @@ class MetricZ_EntitiesWriter
 				continue;
 
 			tm.Update();
-			s_TransportMetricsBuffer.Insert(tm);
+
+			MetricZ_TransportSnapshot snap = new MetricZ_TransportSnapshot();
+			tm.ToSnapshot(snap);
+			snaps.Insert(snap);
 		}
 
-		if (s_TransportMetricsBuffer.Count() == 0)
+		if (snaps.Count() == 0) {
+			json = "[]";
 			return;
-
-		int metricsCount = s_TransportMetricsBuffer[0].Count();
-		for (int i = 0; i < metricsCount; ++i) {
-			s_TransportMetricsBuffer[0].WriteHeaderAt(sink, i);
-
-			foreach (MetricZ_TransportMetrics tmCurrent : s_TransportMetricsBuffer) {
-				if (i >= tmCurrent.Count())
-					continue;
-
-				MetricZ_MetricBase metric = tmCurrent.GetMetricDirect(i);
-				if (metric)
-					metric.Flush(sink);
-			}
 		}
+
+		JsonSerializer().WriteToString(snaps, false, json);
 	}
 
 	/**
-	    \brief Flush all territory metrics in interleaved order.
-	    \details For each metric index: write HELP/TYPE once, then values for all territory.
-	    \param sink MetricZ_SinkBase sink instance
+	    \brief Build a JSON array of all territory flags.
+	    \param json Output JSON string (empty array if none).
 	*/
-	static void FlushTerritory(MetricZ_SinkBase sink)
+	static void BuildTerritoryJson(out string json)
 	{
-		if (!sink)
-			return;
-
 		array<TerritoryFlag> list = MetricZ_TerritoryRegistry.GetList();
-		if (!list || list.Count() == 0)
-			return;
 
-		s_TerritoryMetricsBuffer.Clear();
+		if (!list || list.Count() == 0) {
+			json = "[]";
+			return;
+		}
+
+		array<ref MetricZ_TerritorySnapshot> snaps = new array<ref MetricZ_TerritorySnapshot>();
+
 		foreach (TerritoryFlag territory : list) {
 			if (!territory)
 				continue;
@@ -153,54 +132,35 @@ class MetricZ_EntitiesWriter
 				continue;
 
 			fm.Update();
-			s_TerritoryMetricsBuffer.Insert(fm);
+
+			MetricZ_TerritorySnapshot snap = new MetricZ_TerritorySnapshot();
+			fm.ToSnapshot(snap);
+			snaps.Insert(snap);
 		}
 
-		if (s_TerritoryMetricsBuffer.Count() == 0)
+		if (snaps.Count() == 0) {
+			json = "[]";
 			return;
-
-		int n = s_TerritoryMetricsBuffer[0].Count();
-		for (int i = 0; i < n; ++i) {
-			s_TerritoryMetricsBuffer[0].WriteHeaderAt(sink, i);
-
-			foreach (MetricZ_TerritoryMetrics fmCurrent : s_TerritoryMetricsBuffer) {
-				if (i >= fmCurrent.Count())
-					continue;
-
-				MetricZ_MetricBase metric = fmCurrent.GetMetricDirect(i);
-				if (metric)
-					metric.Flush(sink);
-			}
 		}
+
+		JsonSerializer().WriteToString(snaps, false, json);
 	}
 
 	/**
-	    \brief Flush weapon stats as a grouped family.
-	    \param sink MetricZ_SinkBase sink instance
+	    \brief Build a JSON array of all effect areas.
+	    \param json Output JSON string (empty array if none).
 	*/
-	static void FlushWeapons(MetricZ_SinkBase sink)
+	static void BuildAreasJson(out string json)
 	{
-		if (!sink)
-			return;
-
-		MetricZ_WeaponStats.Flush(sink);
-	}
-
-	/**
-	    \brief Flush all EffectArea metrics in interleaved order.
-	    \details For each metric index: write HELP/TYPE once, then values for all EffectArea.
-	    \param sink MetricZ_SinkBase sink instance
-	*/
-	static void FlushEffectAreas(MetricZ_SinkBase sink)
-	{
-		if (!sink)
-			return;
-
 		array<EffectArea> list = MetricZ_EffectAreaRegistry.GetList();
-		if (!list || list.Count() == 0)
-			return;
 
-		s_AreaMetricsBuffer.Clear();
+		if (!list || list.Count() == 0) {
+			json = "[]";
+			return;
+		}
+
+		array<ref MetricZ_AreaSnapshot> snaps = new array<ref MetricZ_AreaSnapshot>();
+
 		foreach (EffectArea area : list) {
 			if (!area)
 				continue;
@@ -210,25 +170,18 @@ class MetricZ_EntitiesWriter
 				continue;
 
 			am.Update();
-			s_AreaMetricsBuffer.Insert(am);
+
+			MetricZ_AreaSnapshot snap = new MetricZ_AreaSnapshot();
+			am.ToSnapshot(snap);
+			snaps.Insert(snap);
 		}
 
-		if (s_AreaMetricsBuffer.Count() == 0)
+		if (snaps.Count() == 0) {
+			json = "[]";
 			return;
-
-		int n = s_AreaMetricsBuffer[0].Count();
-		for (int i = 0; i < n; ++i) {
-			s_AreaMetricsBuffer[0].WriteHeaderAt(sink, i);
-
-			foreach (MetricZ_EffectAreaMetrics amCurrent : s_AreaMetricsBuffer) {
-				if (i >= amCurrent.Count())
-					continue;
-
-				MetricZ_MetricBase metric = amCurrent.GetMetricDirect(i);
-				if (metric)
-					metric.Flush(sink);
-			}
 		}
+
+		JsonSerializer().WriteToString(snaps, false, json);
 	}
 }
 #endif

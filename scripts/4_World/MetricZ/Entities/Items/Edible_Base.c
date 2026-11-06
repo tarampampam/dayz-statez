@@ -1,7 +1,8 @@
 /*
     SPDX-License-Identifier: GPL-3.0-or-later
     Copyright (c) 2025 WoozyMasta
-    Source: https://github.com/woozymasta/metricz
+    Upstream: https://github.com/WoozyMasta/metricz
+    Modified: 2026
 */
 #ifdef SERVER
 /**
@@ -21,7 +22,7 @@ modded class Edible_Base
 			return;
 
 		if (!IsInherited(Bottle_Base))
-			MetricZ_Storage.s_Food.Inc();
+			MetricZ_Storage.s_Food += 1;
 
 		MetricZ_Storage.FoodMetricChange(MetricZ_GetFoodType(), true);
 	}
@@ -33,7 +34,7 @@ modded class Edible_Base
 	{
 		if (MetricZ_Storage.IsInitialized()) {
 			if (!IsInherited(Bottle_Base))
-				MetricZ_Storage.s_Food.Dec();
+				MetricZ_Storage.s_Food -= 1;
 
 			MetricZ_Storage.FoodMetricChange(MetricZ_GetFoodType(), false);
 		}

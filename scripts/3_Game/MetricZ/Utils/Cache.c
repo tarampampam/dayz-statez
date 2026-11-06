@@ -1,0 +1,143 @@
+/*
+    SPDX-License-Identifier: GPL-3.0-or-later
+    Copyright (c) 2025 WoozyMasta
+    Source: https://github.com/woozymasta/metricz
+*/
+
+#ifdef SERVER
+typedef map<int, ref array<string>> MetricZ_Cache;
+
+enum MetricZ_CacheKey {
+	NONE,
+	WEAPON_TYPES,
+	AMMO_TYPES,
+	KILLER_OBJECT,
+}
+
+/**
+    \brief Global registry for known metric keys persistence.
+    \details Stores sets of known labels (e.g. all seen weapon types) to initialize
+             counters with 0 on server restart, fixing Prometheus rate calculations.
+*/
+class MetricZ_PersistentCache {
+	protected static bool s_HasChanges; //!< True if the cache has changes
+	protected static ref MetricZ_Cache s_Cache; //!< Map of MetricZ_CacheKey to array of strings
+	protected static ref JsonSerializer m_Serializer; //!< JSON serializer
+
+	/**
+	    \brief Load cache from disk.
+	*/
+	static bool Load()
+	{
+		if (!s_Cache)
+			s_Cache = new MetricZ_Cache();
+
+		string cacheFile = MetricZ_Constants.CACHE_FILE;
+		if (!FileExist(cacheFile))
+			return false;
+
+		FileHandle fh = OpenFile(cacheFile, FileMode.READ);
+		if (fh == 0) {
+			ErrorEx("MetricZ: fail open labels cache file: " + cacheFile, ErrorExSeverity.ERROR);
+			return false;
+		}
+
+		string data;
+
+		ReadFile(fh, data, 10485760);
+		CloseFile(fh);
+
+		if (!m_Serializer)
+			m_Serializer = new JsonSerializer();
+
+		string error;
+		if (!m_Serializer.ReadFromString(s_Cache, data, error)) {
+			ErrorEx("MetricZ: fail load labels cache with error: " + error, ErrorExSeverity.ERROR);
+			return false;
+		}
+
+#ifdef DIAG
+		ErrorEx("MetricZ: labels cache loaded from file: " + cacheFile, ErrorExSeverity.INFO);
+#endif
+
+		return true;
+	}
+
+	/**
+	    \brief Save to disk only if data changed.
+	*/
+	static bool Save()
+	{
+		// string filename, T data, out string errorMessage
+		if (!s_Cache || !s_HasChanges)
+			return false;
+
+		if (!m_Serializer)
+			m_Serializer = new JsonSerializer();
+
+		string cacheFile = MetricZ_Constants.CACHE_FILE;
+		string data;
+		if (!m_Serializer.WriteToString(s_Cache, false, data)) {
+			ErrorEx("MetricZ: fail save labels cache in file: serialization error", ErrorExSeverity.ERROR);
+			return false;
+		}
+
+		FileHandle fh = OpenFile(cacheFile, FileMode.WRITE);
+		if (fh == 0) {
+			ErrorEx("MetricZ: fail save labels cache in file: " + cacheFile, ErrorExSeverity.ERROR);
+			return false;
+		}
+
+		FPrint(fh, data);
+		CloseFile(fh);
+
+		s_HasChanges = false;
+
+#ifdef DIAG
+		ErrorEx("MetricZ: labels cache saved in file: " + cacheFile, ErrorExSeverity.INFO);
+#endif
+
+		return true;
+	}
+
+	/**
+	    \brief Register a seen key.
+	    \param category MetricZ_CacheKey category
+	    \param key Key to register
+	    \return true if key was new (added), false if already known.
+	*/
+	static bool Register(MetricZ_CacheKey category, string key)
+	{
+		if (!s_Cache || category <= MetricZ_CacheKey.NONE || key == string.Empty)
+			return false;
+
+		array<string> keys;
+		if (!s_Cache.Find(category, keys)) {
+			keys = new array<string>();
+			s_Cache.Insert(category, keys);
+		}
+
+		// If key unknown -> add and mark dirty
+		if (keys.Find(key) == -1) {
+			keys.Insert(key);
+			s_HasChanges = true;
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	    \brief Get all known keys for a category to initialize counters.
+	    \param category MetricZ_CacheKey category
+	    \return array of strings
+	*/
+	static array<string> GetKeys(MetricZ_CacheKey category)
+	{
+		if (!s_Cache)
+			return null;
+
+		return s_Cache.Get(category);
+	}
+}
+#endif

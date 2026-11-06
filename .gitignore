@@ -1,0 +1,27 @@
+## IDEs
+/.idea
+/.vscode
+
+## AI shit
+/.copilot
+/.cursor
+/.claude
+/.windsurf
+/.aider*
+/.gemini
+/CLAUDE.md
+/AGENTS.md
+
+## Temp dirs & trash
+/temp
+/tmp
+/*-old
+*~
+.DS_Store
+
+## Etc
+tags
+tools/diag-*.sh
+tools/*ent.sh
+tools/scp.sh
+tools/extract.sh

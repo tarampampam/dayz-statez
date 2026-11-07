@@ -21,3 +21,5 @@
 
 ## Etc
 /tools
+/.build*
+/dist

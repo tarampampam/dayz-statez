@@ -346,7 +346,9 @@ class MetricZ_Storage
 	*/
 	static void FoodMetricChange(MetricZ_FoodTypes foodType, bool increase)
 	{
-		int delta = increase ? 1 : -1;
+		int delta = 1;
+		if (!increase)
+			delta = -1;
 
 		switch (foodType) {
 		case MetricZ_FoodTypes.OTHER:

@@ -76,21 +76,32 @@ class MetricZ_JsonWriter
 	*/
 	static void DeleteAll(string exportDir)
 	{
-		array<string> files = new array<string>();
-		FindFileHandle fh = FindFile(exportDir + "*.json", files, FileAttr.NORMAL, FindFileFlags.CURRENT_DIR);
-		if (fh) {
-			foreach (string f : files)
-				DeleteFile(exportDir + f);
-			CloseFindFile(fh);
+		DeleteByPattern(exportDir, "*.json");
+		DeleteByPattern(exportDir, "*.tmp");
+	}
+
+	/**
+	    \brief Delete all files matching a pattern in a directory.
+	    \param exportDir Target directory (must end with /).
+	    \param pattern Glob pattern (e.g. "*.json").
+	*/
+	protected static void DeleteByPattern(string exportDir, string pattern)
+	{
+		string fileName;
+		FileAttr attr;
+		FindFileHandle fh = FindFile(exportDir + pattern, fileName, attr, FindFileFlags.ARCHIVES);
+		if (!fh)
+			return;
+
+		if (fileName != string.Empty)
+			DeleteFile(exportDir + fileName);
+
+		while (FindNextFile(fh, fileName, attr)) {
+			if (fileName != string.Empty)
+				DeleteFile(exportDir + fileName);
 		}
 
-		files.Clear();
-		fh = FindFile(exportDir + "*.tmp", files, FileAttr.NORMAL, FindFileFlags.CURRENT_DIR);
-		if (fh) {
-			foreach (string f : files)
-				DeleteFile(exportDir + f);
-			CloseFindFile(fh);
-		}
+		CloseFindFile(fh);
 	}
 }
 #endif

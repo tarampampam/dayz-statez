@@ -37,7 +37,6 @@ modded class HelicopterScript
 
 	/**
 	    \brief Register helicopter in transport registry and create metrics.
-	    \details No-op if transport metrics disabled.
 	*/
 	override void EEInit()
 	{
@@ -77,7 +76,7 @@ modded class HelicopterScript
 	}
 
 	/**
-	    \brief Increment helicopters destroyed counter on kill if enabled.
+	    \brief Increment helicopters destroyed counter on kill.
 	*/
 	override void EEKilled(Object killer)
 	{

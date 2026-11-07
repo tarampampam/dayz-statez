@@ -37,7 +37,6 @@ modded class CarScript
 
 	/**
 	    \brief Register car in transport registry and create metrics.
-	    \details No-op if transport metrics disabled.
 	*/
 	override void EEInit()
 	{
@@ -98,7 +97,7 @@ modded class CarScript
 	}
 
 	/**
-	    \brief Increment cars destroyed counter on kill if enabled.
+	    \brief Increment cars destroyed counter on kill.
 	*/
 	override void EEKilled(Object killer)
 	{

@@ -45,7 +45,7 @@ modded class Weapon_Base
 
 	/**
 	    \brief Count weapon shot for stats.
-	    \details Calls base then forwards to StateZ_WeaponStats unless disabled.
+	    \details Calls base then forwards to StateZ_WeaponStats.
 	*/
 	override void OnFire(int muzzle_index)
 	{

@@ -37,7 +37,6 @@ modded class BoatScript
 
 	/**
 	    \brief Register boat in transport registry and create metrics.
-	        \details No-op if transport metrics disabled.
 	*/
 	override void EEInit()
 	{
@@ -77,7 +76,7 @@ modded class BoatScript
 	}
 
 	/**
-	    \brief Increment boats destroyed counter on kill if enabled.
+	    \brief Increment boats destroyed counter on kill.
 	*/
 	override void EEKilled(Object killer)
 	{

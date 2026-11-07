@@ -45,18 +45,6 @@ class StateZ_TerritoryRegistry
 	}
 
 	/**
-	    \brief Create a snapshot copy of current registered territories.
-	    \details Used to safely iterate without modifying the live registry.
-	    \param[out] territories Output array with snapshot of territories
-	*/
-	static void Snapshot(out array<TerritoryFlag> territories)
-	{
-		territories = new array<TerritoryFlag>();
-		for (int i = 0; i < s_Registry.Count(); ++i)
-			territories.Insert(s_Registry[i]);
-	}
-
-	/**
 	    \brief Returns direct reference to the live registry
 	    \warning Do NOT modify this array (Remove/Insert) while iterating!
 	*/

@@ -8,8 +8,8 @@
 #ifdef SERVER
 /**
     \brief Configuration Manager for StateZ.
-    \details Handles the lifecycle of the configuration: loading from JSON, version migration,
-             creating default files, and initializing export paths.
+    \details Handles the lifecycle of the configuration: loading from JSON,
+             creating default files, and ensuring the output directory exists.
              Implements the Singleton pattern.
 */
 class StateZ_Config
@@ -34,18 +34,6 @@ class StateZ_Config
 		}
 
 		return s_Config;
-	}
-
-	/**
-	    \brief Drop instance and force reload on next
-	*/
-	static void Reset()
-	{
-		if (s_Config)
-			s_Config = null;
-
-		s_Loaded = false;
-		ErrorEx("StateZ: configuration reset", ErrorExSeverity.INFO);
 	}
 
 	/**
@@ -83,7 +71,6 @@ class StateZ_Config
 				return;
 			}
 
-			s_Config.Normalize();
 			SetLoaded();
 			return;
 		}

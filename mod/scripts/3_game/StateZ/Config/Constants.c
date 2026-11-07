@@ -12,7 +12,6 @@
 class StateZ_Constants
 {
 	// Build information
-	static const string NAME = "StateZ";
 	static const string VERSION = "dev";
 	static const string COMMIT_SHA = "fffffff";
 	static const string BUILD_DATE = "1970-01-01T00:00:00+00:00";

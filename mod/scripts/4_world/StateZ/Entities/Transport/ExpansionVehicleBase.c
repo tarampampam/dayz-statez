@@ -39,7 +39,6 @@ modded class ExpansionVehicleBase
 
 	/**
 	    \brief Increment transport based counters.
-	    \details No-op if transport metrics disabled.
 	*/
 	override void EEInit()
 	{
@@ -92,7 +91,7 @@ modded class ExpansionVehicleBase
 	}
 
 	/**
-	    \brief Increment transport based destroyed counter on kill if enabled.
+	    \brief Increment transport based destroyed counter on kill.
 	*/
 	override void EEKilled(Object killer)
 	{

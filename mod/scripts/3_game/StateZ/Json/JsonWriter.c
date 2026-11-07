@@ -76,23 +76,23 @@ class StateZ_JsonWriter
 
 	/**
 	    \brief Delete all files matching a pattern in a directory.
-	    \param exportDir Target directory (must end with /).
+	    \param dir Target directory (must end with /).
 	    \param pattern Glob pattern (e.g. "*.json").
 	*/
-	protected static void DeleteByPattern(string exportDir, string pattern)
+	protected static void DeleteByPattern(string dir, string pattern)
 	{
 		string fileName;
 		FileAttr attr;
-		FindFileHandle fh = FindFile(exportDir + pattern, fileName, attr, FindFileFlags.ARCHIVES);
+		FindFileHandle fh = FindFile(dir + pattern, fileName, attr, FindFileFlags.ARCHIVES);
 		if (!fh)
 			return;
 
 		if (fileName != string.Empty)
-			DeleteFile(exportDir + fileName);
+			DeleteFile(dir + fileName);
 
 		while (FindNextFile(fh, fileName, attr)) {
 			if (fileName != string.Empty)
-				DeleteFile(exportDir + fileName);
+				DeleteFile(dir + fileName);
 		}
 
 		CloseFindFile(fh);

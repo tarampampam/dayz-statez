@@ -16,11 +16,6 @@ class StateZ_CollectorAnimals : StateZ_CollectorBase
 		return "animals";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.animals);
-	}
-
 	override void Flush()
 	{
 		string json;

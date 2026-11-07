@@ -16,11 +16,6 @@ class StateZ_CollectorEvents : StateZ_CollectorBase
 		return "events";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.events);
-	}
-
 	override void Flush()
 	{
 		string json;

@@ -115,14 +115,8 @@ modded class EffectArea
 		if (!StateZ_Config.IsLoaded() || m_StateZ_AreaInit)
 			return;
 
-		if (StateZ_Config.Get().disabled_metrics.local_areas && IsInherited(ContaminatedArea_Local))
-			return;
-
 		m_StateZ_AreaInit = true;
 		StateZ_Storage.s_EffectAreas += 1;
-
-		if (StateZ_Config.Get().disabled_metrics.areas)
-			return;
 
 		StateZ_EffectAreaRegistry.Register(this);
 
@@ -141,10 +135,8 @@ modded class EffectArea
 		if (!StateZ_Config.IsLoaded() || !m_StateZ_AreaInit)
 			return;
 
-		if (!StateZ_Config.Get().disabled_metrics.areas) {
-			m_StateZ = null;
-			StateZ_EffectAreaRegistry.Unregister(this);
-		}
+		m_StateZ = null;
+		StateZ_EffectAreaRegistry.Unregister(this);
 
 		StateZ_Storage.s_EffectAreas -= 1;
 	}

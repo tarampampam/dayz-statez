@@ -21,7 +21,7 @@ modded class CarScript
 	{
 		super.EEOnAfterLoad();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 		if (!m_StateZ)
@@ -43,7 +43,7 @@ modded class CarScript
 	{
 		super.EEInit();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 #ifdef EXPANSIONMODVEHICLE
@@ -77,7 +77,7 @@ modded class CarScript
 	*/
 	override void EEDelete(EntityAI parent)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports) {
+		if (StateZ_Config.IsLoaded()) {
 			m_StateZ = null;
 
 #ifdef EXPANSIONMODVEHICLE
@@ -102,7 +102,7 @@ modded class CarScript
 	*/
 	override void EEKilled(Object killer)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports && !m_StateZ_IsKilled) {
+		if (StateZ_Config.IsLoaded() && !m_StateZ_IsKilled) {
 #ifdef EXPANSIONMODVEHICLE
 			if (IsInherited(ExpansionBoatScript))
 				StateZ_Storage.s_BoatsDestroys += 1;

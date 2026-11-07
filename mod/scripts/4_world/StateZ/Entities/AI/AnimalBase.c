@@ -28,8 +28,7 @@ modded class AnimalBase
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		if (!StateZ_Config.Get().disabled_metrics.animals)
-			StateZ_AnimalStats.OnSpawn(this);
+		StateZ_AnimalStats.OnSpawn(this);
 
 		StateZ_Storage.s_Animals += 1;
 	}
@@ -45,8 +44,7 @@ modded class AnimalBase
 			if (m_StateZ_IsKilled)
 				StateZ_Storage.s_AnimalsCorpses -= 1;
 
-			if (!StateZ_Config.Get().disabled_metrics.animals)
-				StateZ_AnimalStats.OnDelete(this);
+			StateZ_AnimalStats.OnDelete(this);
 		}
 
 		super.EEDelete(parent);
@@ -65,7 +63,7 @@ modded class AnimalBase
 
 			StateZ_Storage.s_AnimalsCorpses += 1;
 
-			if (!StateZ_Config.Get().disabled_metrics.weapons && killer != this)
+			if (killer != this)
 				StateZ_WeaponStats.OnCreatureKilled(killer);
 		}
 
@@ -82,7 +80,7 @@ modded class AnimalBase
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		if (!StateZ_Config.Get().disabled_metrics.hits && source != this && !m_StateZ_IsLastHit) {
+		if (source != this && !m_StateZ_IsLastHit) {
 			if (IsDamageDestroyed())
 				m_StateZ_IsLastHit = true;
 

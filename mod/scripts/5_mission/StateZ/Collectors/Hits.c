@@ -16,11 +16,6 @@ class StateZ_CollectorHits : StateZ_CollectorBase
 		return "hits";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.hits);
-	}
-
 	override void Flush()
 	{
 		string json;

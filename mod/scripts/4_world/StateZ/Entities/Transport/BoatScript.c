@@ -21,7 +21,7 @@ modded class BoatScript
 	{
 		super.EEOnAfterLoad();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 		if (!m_StateZ)
@@ -43,7 +43,7 @@ modded class BoatScript
 	{
 		super.EEInit();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 		StateZ_Storage.s_Boats += 1;
@@ -67,7 +67,7 @@ modded class BoatScript
 	*/
 	override void EEDelete(EntityAI parent)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports) {
+		if (StateZ_Config.IsLoaded()) {
 			m_StateZ = null;
 			StateZ_Storage.s_Boats -= 1;
 			StateZ_TransportRegistry.Unregister(this);
@@ -81,7 +81,7 @@ modded class BoatScript
 	*/
 	override void EEKilled(Object killer)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports && !m_StateZ_IsKilled) {
+		if (StateZ_Config.IsLoaded() && !m_StateZ_IsKilled) {
 			StateZ_Storage.s_BoatsDestroys += 1;
 			m_StateZ_IsKilled = true;
 		}

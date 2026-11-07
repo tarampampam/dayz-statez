@@ -21,7 +21,7 @@ modded class HelicopterScript
 	{
 		super.EEOnAfterLoad();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 		if (!m_StateZ)
@@ -43,7 +43,7 @@ modded class HelicopterScript
 	{
 		super.EEInit();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 		StateZ_Storage.s_Helicopters += 1;
@@ -67,7 +67,7 @@ modded class HelicopterScript
 	*/
 	override void EEDelete(EntityAI parent)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports) {
+		if (StateZ_Config.IsLoaded()) {
 			m_StateZ = null;
 			StateZ_Storage.s_Helicopters -= 1;
 			StateZ_TransportRegistry.Unregister(this);
@@ -81,7 +81,7 @@ modded class HelicopterScript
 	*/
 	override void EEKilled(Object killer)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports && !m_StateZ_IsKilled) {
+		if (StateZ_Config.IsLoaded() && !m_StateZ_IsKilled) {
 			StateZ_Storage.s_HelicoptersDestroys += 1;
 			m_StateZ_IsKilled = true;
 		}

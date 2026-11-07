@@ -16,11 +16,6 @@ class StateZ_CollectorPlayers : StateZ_CollectorBase
 		return "players";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.players);
-	}
-
 	override void Flush()
 	{
 		string json;

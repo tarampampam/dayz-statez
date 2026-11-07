@@ -50,7 +50,6 @@ class StateZ_Scheduler
 		RegisterCollector(new StateZ_CollectorHits());
 		RegisterCollector(new StateZ_CollectorTerritories());
 		RegisterCollector(new StateZ_CollectorAreas());
-		RegisterCollector(new StateZ_CollectorRPC());
 		RegisterCollector(new StateZ_CollectorEvents());
 
 		ErrorEx("StateZ: loaded with " + m_Collectors.Count() + " collectors", ErrorExSeverity.INFO);

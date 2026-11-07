@@ -16,11 +16,6 @@ class StateZ_CollectorAreas : StateZ_CollectorBase
 		return "areas";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.areas);
-	}
-
 	override void Flush()
 	{
 		string json;

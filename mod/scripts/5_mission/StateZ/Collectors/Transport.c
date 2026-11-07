@@ -16,11 +16,6 @@ class StateZ_CollectorTransports : StateZ_CollectorBase
 		return "vehicles";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports);
-	}
-
 	override void Flush()
 	{
 		string json;

@@ -15,7 +15,7 @@ modded class TerritoryFlag
 
 	/**
 	    \brief Track territory flag and register metrics collector.
-	    \details Increments count, registers in registry unless disabled.
+	    \details Increments count and registers in registry.
 	*/
 	override void EEInit()
 	{
@@ -25,9 +25,6 @@ modded class TerritoryFlag
 			return;
 
 		StateZ_Storage.s_TerritoryFlags += 1;
-
-		if (StateZ_Config.Get().disabled_metrics.territories)
-			return;
 
 		StateZ_TerritoryRegistry.Register(this);
 		if (!m_StateZ) {
@@ -41,7 +38,7 @@ modded class TerritoryFlag
 	*/
 	override void EEDelete(EntityAI parent)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.territories) {
+		if (StateZ_Config.IsLoaded()) {
 			m_StateZ = null;
 			StateZ_TerritoryRegistry.Unregister(this);
 		}

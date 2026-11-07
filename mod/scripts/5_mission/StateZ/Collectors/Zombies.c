@@ -16,11 +16,6 @@ class StateZ_CollectorZombies : StateZ_CollectorBase
 		return "zombies";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.zombies);
-	}
-
 	override void Flush()
 	{
 		string json;

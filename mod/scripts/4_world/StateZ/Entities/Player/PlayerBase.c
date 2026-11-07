@@ -18,7 +18,6 @@ modded class PlayerBase
 
 	/**
 	    \brief Register per-player metrics collector on init.
-	    \details No-op if player metrics disabled.
 	*/
 	override void EEInit()
 	{
@@ -37,9 +36,6 @@ modded class PlayerBase
 			return;
 		}
 #endif
-
-		if (StateZ_Config.Get().disabled_metrics.players)
-			return;
 
 		if (!m_StateZ) {
 			m_StateZ = new StateZ_PlayerMetrics();
@@ -78,7 +74,7 @@ modded class PlayerBase
 
 #ifdef EXPANSIONMODAI
 			if (IsInherited(eAIBase)) {
-				if (!StateZ_Config.Get().disabled_metrics.kills && killer != this)
+				if (killer != this)
 					StateZ_WeaponStats.OnCreatureKilled(killer);
 
 				if (IsInherited(eAINPCBase))
@@ -92,10 +88,9 @@ modded class PlayerBase
 			}
 #endif
 
-			if (!StateZ_Config.Get().disabled_metrics.players)
-				StateZ_Storage.s_PlayersDeaths += 1;
+			StateZ_Storage.s_PlayersDeaths += 1;
 
-			if (!StateZ_Config.Get().disabled_metrics.weapons && killer != this)
+			if (killer != this)
 				StateZ_WeaponStats.OnPlayerKilled(killer);
 		}
 
@@ -112,7 +107,7 @@ modded class PlayerBase
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		if (!StateZ_Config.Get().disabled_metrics.hits && source != this && !m_StateZ_IsLastHit) {
+		if (source != this && !m_StateZ_IsLastHit) {
 			if (IsDamageDestroyed())
 				m_StateZ_IsLastHit = true;
 
@@ -160,7 +155,7 @@ modded class PlayerBase
 			return;
 #endif
 
-		if (m_StateZ && !StateZ_Config.Get().disabled_metrics.players)
+		if (m_StateZ)
 			m_StateZ.SampleNetwork();
 	}
 }

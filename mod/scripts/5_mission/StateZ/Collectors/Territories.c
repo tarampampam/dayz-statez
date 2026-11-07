@@ -16,11 +16,6 @@ class StateZ_CollectorTerritories : StateZ_CollectorBase
 		return "territories";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.territories);
-	}
-
 	override void Flush()
 	{
 		string json;

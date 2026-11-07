@@ -7,8 +7,8 @@
 
 #ifdef SERVER
 /**
-    Server-side instrumentation for RPC and Event metrics.
-    Counts incoming RPCs by id and all events by EventType.
+    Server-side instrumentation for Event metrics.
+    Counts all events by EventType.
 */
 modded class DayZGame
 {
@@ -29,26 +29,13 @@ modded class DayZGame
 	}
 
 	/**
-	    \brief Hook incoming RPCs to count them.
-	    \details Increments per-id counter, then calls base.
-	*/
-	override void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
-	{
-		// count all input RPC calls
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.rpc_input)
-			StateZ_RpcStats.Inc(rpc_type);
-
-		super.OnRPC(sender, target, rpc_type, ctx);
-	}
-
-	/**
 	    \brief Hook engine events to count occurrences.
 	    \details Increments per-EventType counter, then calls base.
 	*/
 	override void OnEvent(EventType eventTypeId, Param params)
 	{
 		// count all events on server
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.events)
+		if (StateZ_Config.IsLoaded())
 			StateZ_EventStats.Inc(eventTypeId);
 
 		super.OnEvent(eventTypeId, params);

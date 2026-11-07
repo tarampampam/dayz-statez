@@ -32,8 +32,7 @@ modded class ZombieBase
 
 		StateZ_Storage.s_Infected += 1;
 
-		if (!StateZ_Config.Get().disabled_metrics.zombies)
-			StateZ_ZombieStats.OnSpawn(this);
+		StateZ_ZombieStats.OnSpawn(this);
 	}
 
 	/**
@@ -47,8 +46,7 @@ modded class ZombieBase
 			if (m_StateZ_IsKilled)
 				StateZ_Storage.s_InfectedCorpses -= 1;
 
-			if (!StateZ_Config.Get().disabled_metrics.zombies)
-				StateZ_ZombieStats.OnDelete(this, m_StateZ_State);
+			StateZ_ZombieStats.OnDelete(this, m_StateZ_State);
 		}
 
 		super.EEDelete(parent);
@@ -67,13 +65,10 @@ modded class ZombieBase
 
 			StateZ_Storage.s_InfectedCorpses += 1;
 
-			if (!StateZ_Config.Get().disabled_metrics.zombies) {
-				StateZ_ZombieStats.OnKilled(m_StateZ_State);
-				m_StateZ_State = StateZ_ZombieStats.MINDSTATE_DEAD;
-			} else
-				m_StateZ_State = -1;
+			StateZ_ZombieStats.OnKilled(m_StateZ_State);
+			m_StateZ_State = StateZ_ZombieStats.MINDSTATE_DEAD;
 
-			if (!StateZ_Config.Get().disabled_metrics.weapons && killer != this)
+			if (killer != this)
 				StateZ_WeaponStats.OnCreatureKilled(killer);
 		}
 
@@ -90,7 +85,7 @@ modded class ZombieBase
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		if (!StateZ_Config.Get().disabled_metrics.hits && source != this && !m_StateZ_IsLastHit) {
+		if (source != this && !m_StateZ_IsLastHit) {
 			if (IsDamageDestroyed())
 				m_StateZ_IsLastHit = true;
 

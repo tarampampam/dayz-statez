@@ -15,7 +15,6 @@ class StateZ_ConfigDTO
 	{
 		settings = new StateZ_ConfigDTO_BaseSettings();
 		json = new StateZ_ConfigDTO_JsonExport();
-		disabled_metrics = new StateZ_ConfigDTO_DisabledMetrics();
 		thresholds = new StateZ_ConfigDTO_Thresholds();
 	}
 
@@ -27,9 +26,6 @@ class StateZ_ConfigDTO
 
 	// Settings for exporting data to local JSON files.
 	ref StateZ_ConfigDTO_JsonExport json;
-
-	// Switches to disable specific data collection.
-	ref StateZ_ConfigDTO_DisabledMetrics disabled_metrics;
 
 	// Collection thresholds.
 	ref StateZ_ConfigDTO_Thresholds thresholds;
@@ -47,7 +43,6 @@ class StateZ_ConfigDTO
 	{
 		settings.Normalize();
 		json.Normalize();
-		disabled_metrics.Normalize();
 		thresholds.Normalize();
 
 		max_players = StateZ_Helpers.GetLimitPlayers();
@@ -133,53 +128,6 @@ class StateZ_ConfigDTO_JsonExport
 
 	[NonSerialized()]
 	string export_dir;
-
-	/**
-	    \brief Normalizes configuration values within valid ranges.
-	*/
-	void Normalize() {}
-}
-
-/**
-    \brief Switches to disable specific data collection.
-*/
-class StateZ_ConfigDTO_DisabledMetrics
-{
-	// Disables RPC metrics collection.
-	bool rpc_input;
-
-	// Disables event handler metrics collection.
-	bool events;
-
-	// Disables player-related data collection.
-	bool players;
-
-	// Disables zombie per-type and mind state collection.
-	bool zombies;
-
-	// Disables animal per-type collection.
-	bool animals;
-
-	// Disables vehicle and transport data collection.
-	bool transports;
-
-	// Disables weapon per-type collection (count, shots, kills).
-	bool weapons;
-
-	// Disables hit metrics by ammo type.
-	bool hits;
-
-	// Disables kill metrics by object type.
-	bool kills;
-
-	// Disables territory flag data collection.
-	bool territories;
-
-	// Disables EffectArea data collection.
-	bool areas;
-
-	// Disables Local EffectArea collection.
-	bool local_areas = true;
 
 	/**
 	    \brief Normalizes configuration values within valid ranges.

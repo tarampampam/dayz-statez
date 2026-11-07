@@ -24,8 +24,7 @@ modded class Weapon_Base
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		if (!StateZ_Config.Get().disabled_metrics.weapons)
-			StateZ_WeaponStats.OnSpawn(this);
+		StateZ_WeaponStats.OnSpawn(this);
 
 		StateZ_Storage.s_Weapons += 1;
 	}
@@ -38,8 +37,7 @@ modded class Weapon_Base
 		if (StateZ_Config.IsLoaded()) {
 			StateZ_Storage.s_Weapons -= 1;
 
-			if (!StateZ_Config.Get().disabled_metrics.weapons)
-				StateZ_WeaponStats.OnDelete(this);
+			StateZ_WeaponStats.OnDelete(this);
 		}
 
 		super.EEDelete(parent);
@@ -56,8 +54,7 @@ modded class Weapon_Base
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		if (!StateZ_Config.Get().disabled_metrics.weapons)
-			StateZ_WeaponStats.OnFire(this);
+		StateZ_WeaponStats.OnFire(this);
 	}
 
 	/**

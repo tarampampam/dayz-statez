@@ -16,11 +16,6 @@ class StateZ_CollectorWeapons : StateZ_CollectorBase
 		return "weapons";
 	}
 
-	override bool IsEnabled()
-	{
-		return (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.weapons);
-	}
-
 	override void Flush()
 	{
 		string json;

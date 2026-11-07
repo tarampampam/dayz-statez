@@ -16,11 +16,6 @@ class StateZ_CollectorWorld : StateZ_CollectorBase
 		return "world";
 	}
 
-	override bool IsEnabled()
-	{
-		return StateZ_Config.IsLoaded();
-	}
-
 	override void Flush()
 	{
 		if (!StateZ_Config.IsLoaded())

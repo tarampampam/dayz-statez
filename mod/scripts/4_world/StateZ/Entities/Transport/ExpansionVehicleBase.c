@@ -22,7 +22,7 @@ modded class ExpansionVehicleBase
 	{
 		super.EEOnAfterLoad();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 		if (!m_StateZ)
@@ -45,7 +45,7 @@ modded class ExpansionVehicleBase
 	{
 		super.EEInit();
 
-		if (!StateZ_Config.IsLoaded() || StateZ_Config.Get().disabled_metrics.transports)
+		if (!StateZ_Config.IsLoaded())
 			return;
 
 		if (Expansion_IsBoat())
@@ -75,7 +75,7 @@ modded class ExpansionVehicleBase
 	*/
 	override void EEDelete(EntityAI parent)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports) {
+		if (StateZ_Config.IsLoaded()) {
 			m_StateZ = null;
 
 			if (Expansion_IsBoat())
@@ -96,7 +96,7 @@ modded class ExpansionVehicleBase
 	*/
 	override void EEKilled(Object killer)
 	{
-		if (StateZ_Config.IsLoaded() && !StateZ_Config.Get().disabled_metrics.transports && !m_StateZ_IsKilled) {
+		if (StateZ_Config.IsLoaded() && !m_StateZ_IsKilled) {
 			if (Expansion_IsBoat())
 				StateZ_Storage.s_BoatsDestroys += 1;
 			else if (Expansion_IsHelicopter() || Expansion_IsPlane())

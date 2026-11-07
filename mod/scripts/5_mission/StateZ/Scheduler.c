@@ -37,7 +37,7 @@ class StateZ_Scheduler
 
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(
 		    Update,
-		    StateZ_Config.Get().settings.init_delay_sec * 1000,
+		    StateZ_Config.Get().interval * 1000,
 		    false);
 
 		// Register internal collectors
@@ -84,7 +84,7 @@ class StateZ_Scheduler
 	}
 
 	/**
-	    \brief Graceful shutdown. Deletes all JSON files.
+	    \brief Graceful shutdown. Deletes all JSON files if `delete_on_shutdown` is enabled.
 	*/
 	void Shutdown()
 	{
@@ -99,7 +99,8 @@ class StateZ_Scheduler
 		s_Instance = null;
 		s_Busy = false;
 
-		StateZ_JsonWriter.DeleteAll();
+		if (StateZ_Config.Get().delete_on_shutdown)
+			StateZ_JsonWriter.DeleteAll();
 	}
 
 	/**
@@ -136,7 +137,7 @@ class StateZ_Scheduler
 		// Schedule next tick to minimize drift
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(
 		    Update,
-		    StateZ_Config.Get().settings.collect_interval_sec * 1000,
+		    StateZ_Config.Get().interval * 1000,
 		    false);
 
 		if (!StateZ_Config.IsLoaded())

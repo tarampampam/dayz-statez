@@ -52,7 +52,7 @@ class StateZ_TransportMetrics
 			m_Transport = transport;
 			g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(
 			    BuildIdentity,
-			    StateZ_Config.Get().settings.collect_interval_sec * 1000,
+			    StateZ_Config.Get().interval * 1000,
 			    false);
 		}
 	}

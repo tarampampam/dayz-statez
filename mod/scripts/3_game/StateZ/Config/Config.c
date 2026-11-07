@@ -68,7 +68,6 @@ class StateZ_Config
 	/**
 	    \brief Handles JSON file operations (Load/Save/Upgrade).
 	    \details - If the file exists, it attempts to load and validate it.
-	             - If the version mismatches, it performs an upgrade and saves the file.
 	             - If the file is missing, it creates a new default configuration.
 	*/
 	protected void LoadConfigFile()
@@ -85,25 +84,9 @@ class StateZ_Config
 			}
 
 			s_Config.Normalize();
-
-			if (s_Config.version != StateZ_Constants.VERSION) {
-				s_Config.version = StateZ_Constants.VERSION;
-
-				if (!JsonFileLoader<StateZ_ConfigDTO>.SaveFile(cfgFile, s_Config, error)) {
-					ErrorEx(error);
-					return;
-				}
-
-				ErrorEx(
-				    string.Format("StateZ: saved upgraded config file: %1", cfgFile),
-				    ErrorExSeverity.INFO);
-			}
-
 			SetLoaded();
 			return;
 		}
-
-		s_Config.version = StateZ_Constants.VERSION;
 
 		if (!JsonFileLoader<StateZ_ConfigDTO>.SaveFile(cfgFile, s_Config, error)) {
 			ErrorEx(error);
@@ -140,11 +123,10 @@ class StateZ_Config
 #endif
 
 		string msg = string.Format(
-		                 "StateZ: loaded %1 (%2) build %3, instance_id=%4",
+		                 "StateZ: loaded %1 (%2) build %3",
 		                 StateZ_Constants.VERSION,
 		                 StateZ_Constants.COMMIT_SHA,
-		                 StateZ_Constants.BUILD_DATE,
-		                 s_Config.settings.instance_id_resolved);
+		                 StateZ_Constants.BUILD_DATE);
 
 		ErrorEx(msg, ErrorExSeverity.INFO);
 	}

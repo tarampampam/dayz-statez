@@ -86,8 +86,6 @@ class StateZ_WorldSnapshot
 	// metadata
 	int ts;
 	string world;
-	string instance_id;
-	string host;
 
 	// timing
 	float uptime_seconds;

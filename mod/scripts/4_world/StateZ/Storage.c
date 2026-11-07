@@ -227,9 +227,11 @@ class StateZ_Storage
 			return;
 
 		snap.ts = StateZ_Time.GameEpochSeconds();
-		snap.world = StateZ_Config.Get().settings.world_name_resolved;
-		snap.instance_id = StateZ_Config.Get().settings.instance_id_resolved;
-		snap.host = StateZ_Config.Get().settings.host_name_resolved;
+		string wn;
+		g_Game.GetWorldName(wn);
+		wn.TrimInPlace();
+		wn.ToLower();
+		snap.world = wn;
 
 		snap.uptime_seconds = s_ServerUptimeSec;
 		snap.game_time_unix = s_TimeUnixSec;

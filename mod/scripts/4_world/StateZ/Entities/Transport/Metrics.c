@@ -23,7 +23,7 @@ class StateZ_TransportMetrics
 	float m_Health;
 	int m_Passengers;
 	float m_SpeedMS;
-	int m_EngineOn;
+	bool m_EngineOn;
 	float m_FuelFraction;
 
 	// position
@@ -81,12 +81,12 @@ class StateZ_TransportMetrics
 			speed = 0;
 		m_SpeedMS = speed;
 
-		m_EngineOn = 0;
+		m_EngineOn = false;
 		m_FuelFraction = -1.0;
 
 		CarScript car;
 		if (Class.CastTo(car, m_Transport) && car.IsVitalFuelTank()) {
-			m_EngineOn = StateZ_LabelUtils.Bool(car.EngineIsOn());
+			m_EngineOn = car.EngineIsOn();
 			m_FuelFraction = car.GetFluidFraction(CarFluid.FUEL);
 			return;
 		}
@@ -96,7 +96,7 @@ class StateZ_TransportMetrics
 			if (!boat.EngineIsOn() && speed < 0.30)
 				m_SpeedMS = 0;
 
-			m_EngineOn = StateZ_LabelUtils.Bool(boat.EngineIsOn());
+			m_EngineOn = boat.EngineIsOn();
 			m_FuelFraction = boat.GetFluidFraction(BoatFluid.FUEL);
 			return;
 		}
@@ -104,7 +104,7 @@ class StateZ_TransportMetrics
 #ifdef EXPANSIONMODVEHICLE
 		ExpansionVehicleBase expVehicle;
 		if (Class.CastTo(expVehicle, m_Transport)) {
-			m_EngineOn = StateZ_LabelUtils.Bool(expVehicle.Expansion_EngineIsOn());
+			m_EngineOn = expVehicle.Expansion_EngineIsOn();
 			m_FuelFraction = expVehicle.GetFluidFraction(CarFluid.FUEL);
 			return;
 		}
@@ -151,7 +151,7 @@ class StateZ_TransportMetrics
 		m_VehicleType.TrimInPlace();
 		m_VehicleType.Replace("VehicleType", "");
 
-		m_Hash = StateZ_LabelUtils.PersistentHash(m_Transport);
+		m_Hash = PersistentHash(m_Transport);
 	}
 
 	/**
@@ -170,6 +170,28 @@ class StateZ_TransportMetrics
 		}
 
 		return passengers;
+	}
+
+	/**
+	    \brief Generate a stable hash int from an entity's persistent ID.
+	    \details Combines four persistent-ID ints and hashes them. The sign bit is
+	             masked off so the result is always non-negative; -1 is returned
+	             only when the hash is unavailable (no entity or empty ID).
+	    \param entity EntityAI with persistence
+	    \return int non-negative hash in [0, 2^31-1], or -1 if unavailable
+	*/
+	static int PersistentHash(EntityAI entity)
+	{
+		if (!entity)
+			return -1;
+
+		int p1, p2, p3, p4;
+		entity.GetPersistentID(p1, p2, p3, p4);
+
+		if (p1 == 0 && p2 == 0 && p3 == 0 && p4 == 0)
+			return -1;
+
+		return string.Format("%1_%2_%3_%4", p1, p2, p3, p4).Hash() & 0x7FFFFFFF;
 	}
 }
 #endif

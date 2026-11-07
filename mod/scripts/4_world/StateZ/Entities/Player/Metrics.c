@@ -25,7 +25,7 @@ class StateZ_PlayerMetrics
 	protected PlayerBase m_Player;
 
 	// vitals
-	int m_IsLoaded;
+	bool m_IsLoaded;
 	float m_Health;
 	float m_Blood;
 	float m_Shock;
@@ -51,10 +51,10 @@ class StateZ_PlayerMetrics
 	// states
 	int m_AgentsCount;
 	int m_BleedingSources;
-	int m_ImmunityBoosted;
-	int m_Unconscious;
-	int m_Restrained;
-	int m_GodMode;
+	bool m_ImmunityBoosted;
+	bool m_Unconscious;
+	bool m_Restrained;
+	bool m_GodMode;
 
 	// analytics
 	float m_StatPlaytimeSeconds;
@@ -103,7 +103,7 @@ class StateZ_PlayerMetrics
 			FetchIdentity();
 
 		// vitals
-		m_IsLoaded = StateZ_LabelUtils.Bool(m_Player.IsPlayerLoaded());
+		m_IsLoaded = m_Player.IsPlayerLoaded();
 		m_Health = m_Player.GetHealth01("", "Health");
 		m_Blood = m_Player.GetHealth01("", "Blood");
 		m_Shock = m_Player.GetHealth01("", "Shock");
@@ -126,12 +126,12 @@ class StateZ_PlayerMetrics
 		UpdateNetwork();
 
 		// states
-		m_AgentsCount = StateZ_LabelUtils.BitsCount(m_Player.GetAgents());
-		m_BleedingSources = StateZ_LabelUtils.BitsCount(m_Player.GetBleedingBits());
-		m_ImmunityBoosted = StateZ_LabelUtils.Bool(m_Player.m_ImmunityBoosted);
-		m_Unconscious = StateZ_LabelUtils.Bool(m_Player.IsUnconscious());
-		m_Restrained = StateZ_LabelUtils.Bool(m_Player.IsRestrained());
-		m_GodMode = StateZ_LabelUtils.Bool(!m_Player.GetAllowDamage());
+		m_AgentsCount = BitsCount(m_Player.GetAgents());
+		m_BleedingSources = BitsCount(m_Player.GetBleedingBits());
+		m_ImmunityBoosted = m_Player.m_ImmunityBoosted;
+		m_Unconscious = m_Player.IsUnconscious();
+		m_Restrained = m_Player.IsRestrained();
+		m_GodMode = !m_Player.GetAllowDamage();
 
 		// analytics
 		m_StatPlaytimeSeconds = m_Player.StatGet(AnalyticsManagerServer.STAT_PLAYTIME);
@@ -297,6 +297,23 @@ class StateZ_PlayerMetrics
 		m_PingMinWindow = -1;
 		m_PingMaxWindow = -1;
 		m_ThrottleWindow = -1.0;
+	}
+
+	/**
+	    \brief Count number of set bits in a bitmask.
+	    \details Brian Kernighan's algorithm; each iteration clears the lowest set bit.
+	    \param mask Integer bitmask
+	    \return int Number of bits set to 1
+	*/
+	static int BitsCount(int mask)
+	{
+		int count = 0;
+		while (mask != 0) {
+			mask &= mask - 1; // clear lowest set bit
+			count++;
+		}
+
+		return count;
 	}
 }
 #endif

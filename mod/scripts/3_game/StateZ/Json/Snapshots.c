@@ -175,7 +175,7 @@ class StateZ_PlayerSnapshot
 	string gender;
 	string character_type;
 
-	int is_loaded;
+	bool is_loaded;
 	float health;
 	float blood;
 	float shock;
@@ -198,10 +198,10 @@ class StateZ_PlayerSnapshot
 
 	int agents_active;
 	int bleeding_sources;
-	int immunity_boosted;
-	int is_unconscious;
-	int is_restrained;
-	int godmode;
+	bool immunity_boosted;
+	bool is_unconscious;
+	bool is_restrained;
+	bool godmode;
 
 	float stat_playtime_seconds;
 	float stat_distance_meters;
@@ -223,7 +223,7 @@ class StateZ_TransportSnapshot
 	float health;
 	int crew_occupied;
 	float speed_ms;
-	int engine_on;
+	bool engine_on;
 	float fuel_fraction;
 
 	float pos_x;

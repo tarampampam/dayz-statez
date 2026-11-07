@@ -181,17 +181,6 @@ class StateZ_ConfigDTO_DisabledMetrics
 	// Disables Local EffectArea collection.
 	bool local_areas = true;
 
-	// Disables player and transport coordinate collection.
-	bool positions;
-
-	// Disables height coordinate (Y) collection.
-	// If `positions` is disabled, this will also be disabled forcibly.
-	bool positions_height = true;
-
-	// Disables orientation collection.
-	// If `positions` is disabled, this will also be disabled forcibly.
-	bool positions_yaw = true;
-
 	/**
 	    \brief Normalizes configuration values within valid ranges.
 	*/

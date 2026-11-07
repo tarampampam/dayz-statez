@@ -57,7 +57,7 @@ class StateZ_TerritoryMetrics
 			return;
 
 		snap.pos_x = m_PosX;
-		snap.pos_z = m_PosZ;
+		snap.pos_y = m_PosZ;
 		snap.lifetime_fraction = m_LifetimeFraction;
 		snap.refresher_radius = m_RefresherRadius;
 	}

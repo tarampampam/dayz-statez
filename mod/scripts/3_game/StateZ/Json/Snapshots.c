@@ -188,9 +188,9 @@ class StateZ_PlayerSnapshot
 	float lifetime_seconds;
 
 	float pos_x;
-	float pos_z;
 	float pos_y;
-	float orientation;
+	float pos_alt;
+	float pos_angle;
 
 	int ping_min;
 	int ping_max;
@@ -227,9 +227,9 @@ class StateZ_TransportSnapshot
 	float fuel_fraction;
 
 	float pos_x;
-	float pos_z;
 	float pos_y;
-	float orientation;
+	float pos_alt;
+	float pos_angle;
 }
 
 // ---------------------------------------------------------------------------
@@ -239,7 +239,7 @@ class StateZ_TransportSnapshot
 class StateZ_TerritorySnapshot
 {
 	float pos_x;
-	float pos_z;
+	float pos_y;
 	float lifetime_fraction;
 	float refresher_radius;
 }
@@ -253,7 +253,7 @@ class StateZ_AreaSnapshot
 	string type;
 	string class_name;
 	float pos_x;
-	float pos_z;
+	float pos_y;
 	float radius;
 	int insiders;
 }

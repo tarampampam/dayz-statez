@@ -69,17 +69,11 @@ class StateZ_TransportMetrics
 		m_Passengers = GetPassengersCount();
 
 		// position
-		if (!StateZ_Config.Get().disabled_metrics.positions) {
-			vector pos = m_Transport.GetPosition();
-			m_PosX = pos[0];
-			m_PosZ = pos[2];
-
-			if (!StateZ_Config.Get().disabled_metrics.positions_height)
-				m_PosY = pos[1];
-
-			if (!StateZ_Config.Get().disabled_metrics.positions_yaw)
-				m_Yaw = m_Transport.GetOrientation()[0];
-		}
+		vector pos = m_Transport.GetPosition();
+		m_PosX = pos[0];
+		m_PosZ = pos[2];
+		m_PosY = pos[1];
+		m_Yaw = m_Transport.GetOrientation()[0];
 
 		// speed
 		float speed = GetVelocity(m_Transport).Length();
@@ -137,9 +131,9 @@ class StateZ_TransportMetrics
 		snap.fuel_fraction = m_FuelFraction;
 
 		snap.pos_x = m_PosX;
-		snap.pos_z = m_PosZ;
-		snap.pos_y = m_PosY;
-		snap.orientation = m_Yaw;
+		snap.pos_y = m_PosZ;
+		snap.pos_alt = m_PosY;
+		snap.pos_angle = m_Yaw;
 	}
 
 	/**

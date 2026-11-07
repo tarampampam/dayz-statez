@@ -116,17 +116,11 @@ class StateZ_PlayerMetrics
 		m_LifeSeconds = g_Game.GetTickTime() - m_InitTick;
 
 		// position
-		if (!StateZ_Config.Get().disabled_metrics.positions) {
-			vector pos = m_Player.GetPosition();
-			m_PosX = pos[0];
-			m_PosZ = pos[2];
-
-			if (!StateZ_Config.Get().disabled_metrics.positions_height)
-				m_PosY = pos[1];
-
-			if (!StateZ_Config.Get().disabled_metrics.positions_yaw)
-				m_Yaw = m_Player.GetOrientation()[0];
-		}
+		vector pos = m_Player.GetPosition();
+		m_PosX = pos[0];
+		m_PosZ = pos[2];
+		m_PosY = pos[1];
+		m_Yaw = m_Player.GetOrientation()[0];
 
 		// ping & throttle
 		UpdateNetwork();
@@ -209,9 +203,9 @@ class StateZ_PlayerMetrics
 		snap.lifetime_seconds = m_LifeSeconds;
 
 		snap.pos_x = m_PosX;
-		snap.pos_z = m_PosZ;
-		snap.pos_y = m_PosY;
-		snap.orientation = m_Yaw;
+		snap.pos_y = m_PosZ;
+		snap.pos_alt = m_PosY;
+		snap.pos_angle = m_Yaw;
 
 		snap.ping_min = m_PingMin;
 		snap.ping_max = m_PingMax;

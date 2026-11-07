@@ -14,7 +14,6 @@ class StateZ_ConfigDTO
 	void StateZ_ConfigDTO()
 	{
 		settings = new StateZ_ConfigDTO_BaseSettings();
-		json = new StateZ_ConfigDTO_JsonExport();
 		thresholds = new StateZ_ConfigDTO_Thresholds();
 	}
 
@@ -23,9 +22,6 @@ class StateZ_ConfigDTO
 
 	// Base settings for metric collection.
 	ref StateZ_ConfigDTO_BaseSettings settings;
-
-	// Settings for exporting data to local JSON files.
-	ref StateZ_ConfigDTO_JsonExport json;
 
 	// Collection thresholds.
 	ref StateZ_ConfigDTO_Thresholds thresholds;
@@ -42,7 +38,6 @@ class StateZ_ConfigDTO
 	void Normalize()
 	{
 		settings.Normalize();
-		json.Normalize();
 		thresholds.Normalize();
 
 		max_players = StateZ_Helpers.GetLimitPlayers();
@@ -103,36 +98,6 @@ class StateZ_ConfigDTO_BaseSettings
 		init_delay_sec = (int)Math.Clamp(init_delay_sec, 0, 300);
 		collect_interval_sec = (int)Math.Clamp(collect_interval_sec, 0, 900);
 	}
-}
-
-/**
-    \brief Settings for exporting data to local JSON files.
-*/
-class StateZ_ConfigDTO_JsonExport
-{
-	// Enables saving data to local JSON files.
-	bool enabled = true;
-
-	// Enables atomic export. Data is written to a temporary file and copied/renamed
-	// to the .json file upon completion, removing the temp file.
-	// Prevents consumers from reading incomplete files.
-	bool atomic = true;
-
-	// File name override (without extension).
-	// Default path: $profile:statez/export/statez_${instance_id}/<domain>.json
-	// Override path: $profile:statez/export/${file_name}/<domain>.json
-	string file_name;
-
-	// Delete JSON files when shutting down the server.
-	bool delete_on_shutdown;
-
-	[NonSerialized()]
-	string export_dir;
-
-	/**
-	    \brief Normalizes configuration values within valid ranges.
-	*/
-	void Normalize() {}
 }
 
 /**

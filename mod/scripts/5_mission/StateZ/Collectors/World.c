@@ -28,7 +28,7 @@ class StateZ_CollectorWorld : StateZ_CollectorBase
 
 		string json;
 		JsonSerializer().WriteToString(snap, false, json);
-		StateZ_JsonWriter.Write(StateZ_Config.Get().json.export_dir, GetName(), json);
+		StateZ_JsonWriter.Write(GetName(), json);
 	}
 }
 #endif

@@ -8,29 +8,24 @@
 #ifdef SERVER
 /**
     \brief Utility for writing JSON files atomically.
-    \details Writes JSON to a .tmp file, then copies it to the target .json file and removes the temp.
-             If atomic mode is disabled in config, writes directly.
+    \details Writes JSON to a .tmp file, then copies it to the target .json file and removes the temp,
+             so consumers never read a partially written file.
 */
 class StateZ_JsonWriter
 {
 	/**
-	    \brief Write a JSON string atomically to exportDir/name.json.
-	    \param exportDir Target directory (must end with /).
+	    \brief Write a JSON string atomically to the data directory as name.json.
 	    \param name File name without extension.
 	    \param json JSON content to write.
 	    \return true on success.
 	*/
-	static bool Write(string exportDir, string name, string json)
+	static bool Write(string name, string json)
 	{
 		if (!StateZ_Config.IsLoaded())
 			return false;
 
-		string target = exportDir + name + ".json";
-
-		if (!StateZ_Config.Get().json.atomic)
-			return WriteFile(target, json);
-
-		string tmp = exportDir + name + ".tmp";
+		string target = StateZ_Constants.DATA_DIR + name + ".json";
+		string tmp = StateZ_Constants.DATA_DIR + name + ".tmp";
 
 		if (!WriteFile(tmp, json))
 			return false;
@@ -71,13 +66,12 @@ class StateZ_JsonWriter
 	}
 
 	/**
-	    \brief Delete all .json and .tmp files in the export directory.
-	    \param exportDir Target directory (must end with /).
+	    \brief Delete all .json and .tmp files in the data directory.
 	*/
-	static void DeleteAll(string exportDir)
+	static void DeleteAll()
 	{
-		DeleteByPattern(exportDir, "*.json");
-		DeleteByPattern(exportDir, "*.tmp");
+		DeleteByPattern(StateZ_Constants.DATA_DIR, "*.json");
+		DeleteByPattern(StateZ_Constants.DATA_DIR, "*.tmp");
 	}
 
 	/**

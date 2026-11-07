@@ -84,7 +84,7 @@ class StateZ_Scheduler
 	}
 
 	/**
-	    \brief Graceful shutdown. Writes status=0 or deletes all JSON files.
+	    \brief Graceful shutdown. Deletes all JSON files.
 	*/
 	void Shutdown()
 	{
@@ -99,16 +99,7 @@ class StateZ_Scheduler
 		s_Instance = null;
 		s_Busy = false;
 
-		StateZ_ConfigDTO cfg = StateZ_Config.Get();
-
-		if (cfg.json.delete_on_shutdown) {
-			StateZ_JsonWriter.DeleteAll(cfg.json.export_dir);
-			return;
-		}
-
-		// signal offline status
-		string json = string.Format("{\"status\":0,\"ts\":%1}", StateZ_Time.GameEpochSeconds());
-		StateZ_JsonWriter.Write(cfg.json.export_dir, "status", json);
+		StateZ_JsonWriter.DeleteAll();
 	}
 
 	/**

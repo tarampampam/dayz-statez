@@ -62,9 +62,7 @@ class StateZ_Config
 	protected void Load()
 	{
 		LoadConfigFile();
-
-		if (s_Config.json.enabled)
-			InitJsonExport();
+		InitJsonExport();
 	}
 
 	/**
@@ -119,23 +117,12 @@ class StateZ_Config
 	}
 
 	/**
-	    \brief Determines the export directory for JSON files.
+	    \brief Ensures the JSON output directory exists.
 	*/
 	protected void InitJsonExport()
 	{
-		string exportBase = StateZ_Constants.EXPORT_DIR;
-		if (!FileExist(exportBase))
-			MakeDirectory(exportBase);
-
-		string dirName = s_Config.json.file_name;
-		if (dirName == string.Empty)
-			dirName = string.Format("statez_%1", s_Config.settings.instance_id_resolved);
-
-		string exportDir = string.Format("%1%2/", exportBase, dirName);
-		if (!FileExist(exportDir))
-			MakeDirectory(exportDir);
-
-		s_Config.json.export_dir = exportDir;
+		if (!FileExist(StateZ_Constants.DATA_DIR))
+			MakeDirectory(StateZ_Constants.DATA_DIR);
 	}
 
 	/**

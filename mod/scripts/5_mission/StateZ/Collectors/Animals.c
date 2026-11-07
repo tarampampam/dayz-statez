@@ -20,7 +20,7 @@ class StateZ_CollectorAnimals : StateZ_CollectorBase
 	{
 		string json;
 		StateZ_AnimalStats.BuildJson(json);
-		StateZ_JsonWriter.Write(StateZ_Config.Get().json.export_dir, GetName(), json);
+		StateZ_JsonWriter.Write(GetName(), json);
 	}
 }
 #endif

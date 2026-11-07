@@ -20,7 +20,7 @@ class StateZ_CollectorAreas : StateZ_CollectorBase
 	{
 		string json;
 		StateZ_EntitiesWriter.BuildAreasJson(json);
-		StateZ_JsonWriter.Write(StateZ_Config.Get().json.export_dir, GetName(), json);
+		StateZ_JsonWriter.Write(GetName(), json);
 	}
 }
 #endif

@@ -21,7 +21,9 @@ class StateZ_Constants
 	static const string WORK_DIR = "$profile:statez/";
 	static const string CONFIG_FILE = WORK_DIR + "config.json";
 
-	// File export directory
-	static const string EXPORT_DIR = WORK_DIR + "export/";
+	// JSON output directory. Static path under the server profile.
+	// To store JSON outside the DayZ server root, replace this directory
+	// (<profiles>/statez/data) with a symlink to the desired location.
+	static const string DATA_DIR = WORK_DIR + "data/";
 }
 #endif

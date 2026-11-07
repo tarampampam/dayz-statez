@@ -12,7 +12,7 @@
 modded class Clothing
 {
 	/**
-	    \brief Increment clothes gauge on init.
+	    \brief Increment clothes count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class Clothing
 	}
 
 	/**
-	    \brief Decrement clothes gauge on delete.
+	    \brief Decrement clothes count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

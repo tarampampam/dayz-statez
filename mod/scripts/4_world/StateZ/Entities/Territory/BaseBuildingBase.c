@@ -12,7 +12,7 @@
 modded class BaseBuildingBase
 {
 	/**
-	    \brief Increment base_buildings gauge on init.
+	    \brief Increment base_buildings count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class BaseBuildingBase
 	}
 
 	/**
-	    \brief Decrement base_buildings gauge on delete.
+	    \brief Decrement base_buildings count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

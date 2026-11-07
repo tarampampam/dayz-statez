@@ -17,7 +17,7 @@ class StateZ_FrameMonitor
 	static float s_AccTime; //!< Accumulated time in seconds within the current window
 	static int s_AccFrames; //!< Accumulated frames within the current window
 
-	// window stats between scrapes
+	// window stats between collections
 	static float s_WindowMin; //!< Min FPS in window
 	static float s_WindowMax; //!< Max FPS in window
 	static float s_WindowSum; //!< Sum of FPS in window

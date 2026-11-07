@@ -63,7 +63,7 @@ modded class HelicopterScript
 	}
 
 	/**
-	    \brief Unregister helicopter and decrement gauges on delete.
+	    \brief Unregister helicopter and decrement counts on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

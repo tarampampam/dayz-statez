@@ -12,7 +12,7 @@
 modded class DeployableContainer_Base
 {
 	/**
-	    \brief Increment containers gauge on init.
+	    \brief Increment containers count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class DeployableContainer_Base
 	}
 
 	/**
-	    \brief Decrement containers gauge on delete.
+	    \brief Decrement containers count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

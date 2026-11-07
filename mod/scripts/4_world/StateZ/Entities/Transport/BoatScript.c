@@ -63,7 +63,7 @@ modded class BoatScript
 	}
 
 	/**
-	    \brief Unregister boat and decrement gauges on delete.
+	    \brief Unregister boat and decrement counts on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

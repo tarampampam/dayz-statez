@@ -12,7 +12,7 @@
 modded class MagazineStorage
 {
 	/**
-	    \brief Increment magazines gauge on init.
+	    \brief Increment magazines count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class MagazineStorage
 	}
 
 	/**
-	    \brief Decrement magazines gauge on delete.
+	    \brief Decrement magazines count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

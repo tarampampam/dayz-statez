@@ -9,7 +9,7 @@
 /**
     \brief Helpers for deriving normalized object names.
     \details Provides a consistent, lowercased type name and optional suffix stripping
-             (color/base/state/mag variants) for labeling and metric grouping.
+             (color/base/state/mag variants) for type normalization and grouping.
 */
 class StateZ_ObjectName
 {

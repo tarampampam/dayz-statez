@@ -11,11 +11,11 @@
 */
 modded class Weapon_Base
 {
-	// cache for weapon label names: original type -> canonical name.
-	protected static ref map<string, string> s_StateZ_LabelNames = new map<string, string>();
+	// cache for weapon type names: original type -> canonical name.
+	protected static ref map<string, string> s_StateZ_TypeNames = new map<string, string>();
 
 	/**
-	    \brief Increment weapons gauge on init.
+	    \brief Increment weapons count on init.
 	*/
 	override void EEInit()
 	{
@@ -31,7 +31,7 @@ modded class Weapon_Base
 	}
 
 	/**
-	    \brief Decrement weapons gauge on delete.
+	    \brief Decrement weapons count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{
@@ -61,10 +61,10 @@ modded class Weapon_Base
 	}
 
 	/**
-	    \brief Public helper for StateZ: returns cached canonical label name for this weapon.
-	    \details You can override this for set some beauty label name for your weapon.
+	    \brief Public helper for StateZ: returns cached canonical type name for this weapon.
+	    \details You can override this for set some beauty type name for your weapon.
 	*/
-	override string StateZ_GetLabelTypeName()
+	override string StateZ_GetTypeName()
 	{
 		return StateZ_GetWeaponNameByType();
 	}
@@ -83,16 +83,16 @@ modded class Weapon_Base
 
 		// cache hit
 		string cached;
-		if (s_StateZ_LabelNames && s_StateZ_LabelNames.Find(type, cached))
+		if (s_StateZ_TypeNames && s_StateZ_TypeNames.Find(type, cached))
 			return cached;
 
 		string result = StateZ_ObjectName.GetName(this, true);
 		result.Replace("sawedoff", "");
 
 		// cache store
-		if (!s_StateZ_LabelNames)
-			s_StateZ_LabelNames = new map<string, string>();
-		s_StateZ_LabelNames.Set(type, result);
+		if (!s_StateZ_TypeNames)
+			s_StateZ_TypeNames = new map<string, string>();
+		s_StateZ_TypeNames.Set(type, result);
 
 		return result;
 	}

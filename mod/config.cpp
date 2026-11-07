@@ -11,10 +11,10 @@ class CfgMods
 	{
 		type = "mod";
 		dir = "statez";
-		name = "StateZ — Server Data Exporter for DayZ";
+		name = "StateZ - Server State Writer";
 		version = "0.1.0";
-		credits = "WoozyMasta";
 		author = "tarampampam";
+		credits = "WoozyMasta";
 		hideName = 1;
 		hidePicture = 1;
 		defines[] = {"STATEZ"};

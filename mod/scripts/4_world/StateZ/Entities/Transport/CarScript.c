@@ -73,7 +73,7 @@ modded class CarScript
 	}
 
 	/**
-	    \brief Unregister car and decrement gauges on delete.
+	    \brief Unregister car and decrement counts on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

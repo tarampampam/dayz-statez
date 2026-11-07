@@ -12,7 +12,7 @@
 modded class ExplosivesBase
 {
 	/**
-	    \brief Increment explosives gauge on init.
+	    \brief Increment explosives count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class ExplosivesBase
 	}
 
 	/**
-	    \brief Decrement explosives gauge on delete.
+	    \brief Decrement explosives count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

@@ -12,7 +12,7 @@
 modded class Bottle_Base
 {
 	/**
-	    \brief Increment bottles gauge on init.
+	    \brief Increment bottles count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class Bottle_Base
 	}
 
 	/**
-	    \brief Decrement bottles gauge on delete.
+	    \brief Decrement bottles count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

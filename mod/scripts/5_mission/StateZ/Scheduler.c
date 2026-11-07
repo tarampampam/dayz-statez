@@ -7,23 +7,23 @@
 
 #ifdef SERVER
 /**
-    \brief Background exporter for StateZ.
+    \brief Background scheduler for StateZ.
     \details Owns scheduling and coordination between collectors.
              Entry points: Init() on mission start, Shutdown() on mission finish.
 */
-class StateZ_Exporter
+class StateZ_Scheduler
 {
-	protected static ref StateZ_Exporter s_Instance; // singleton instance
+	protected static ref StateZ_Scheduler s_Instance; // singleton instance
 
 	protected int m_FlushStep; //!< Flush State Machine - step number
-	protected bool s_Busy; //!< Guard prevents overlapping scrapes
+	protected bool s_Busy; //!< Guard prevents overlapping collections
 	protected ref array<ref StateZ_CollectorBase> m_Collectors; //!< Registry of all metric collectors
 
 	/**
-	    \brief Initialize StateZ and schedule first scrape.
+	    \brief Initialize StateZ and schedule first collection.
 	    \details Loads config, initializes storage and queues first Update().
 	*/
-	void StateZ_Exporter()
+	void StateZ_Scheduler()
 	{
 		if (s_Instance)
 			return;
@@ -57,12 +57,12 @@ class StateZ_Exporter
 	}
 
 	/**
-	    \brief Access global exporter instance.
+	    \brief Access global scheduler instance.
 	*/
-	static StateZ_Exporter Get()
+	static StateZ_Scheduler Get()
 	{
 		if (!s_Instance)
-			s_Instance = new StateZ_Exporter();
+			s_Instance = new StateZ_Scheduler();
 
 		return s_Instance;
 	}
@@ -92,7 +92,7 @@ class StateZ_Exporter
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		ErrorEx("StateZ: scrape shutting down", ErrorExSeverity.INFO);
+		ErrorEx("StateZ: shutting down", ErrorExSeverity.INFO);
 
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).Remove(ProcessFlushStep);
 		g_Game.GetCallQueue(CALL_CATEGORY_SYSTEM).Remove(Update);
@@ -136,10 +136,10 @@ class StateZ_Exporter
 	}
 
 	/**
-	    \brief Periodic scrape task. Runs all collectors one-per-frame.
+	    \brief Periodic collection task. Runs all collectors one-per-frame.
 	    \details
 	        - Reschedules itself each call using fixed interval (minimizes drift).
-	        - Skips execution if a previous scrape is still running (s_Busy).
+	        - Skips execution if a previous collection is still running (s_Busy).
 	*/
 	protected void Update()
 	{
@@ -153,8 +153,7 @@ class StateZ_Exporter
 			return;
 
 		if (s_Busy) {
-			StateZ_Storage.s_ScrapeSkippedTotal += 1;
-			ErrorEx("StateZ: skip scrape, previous cycle still running", ErrorExSeverity.WARNING);
+			ErrorEx("StateZ: skip collection, previous cycle still running", ErrorExSeverity.WARNING);
 			return;
 		}
 
@@ -193,7 +192,7 @@ class StateZ_Exporter
 	}
 
 	/**
-	    \brief Finalizes the scrape cycle.
+	    \brief Finalizes the collection cycle.
 	*/
 	protected void FinishFlush()
 	{

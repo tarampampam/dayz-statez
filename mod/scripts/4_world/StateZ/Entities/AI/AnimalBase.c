@@ -15,11 +15,11 @@ modded class AnimalBase
 	protected bool m_StateZ_IsKilled;
 	// prevent counting hits on death bodies except last hit
 	protected bool m_StateZ_IsLastHit;
-	// cache for animal names used in labels: original -> canonical
-	protected static ref map<string, string> s_StateZ_LabelNames = new map<string, string>();
+	// cache for canonical animal type names: original -> canonical
+	protected static ref map<string, string> s_StateZ_TypeNames = new map<string, string>();
 
 	/**
-	    \brief Increment animal gauge on entity init.
+	    \brief Increment animal count on entity init.
 	*/
 	override void EEInit()
 	{
@@ -35,7 +35,7 @@ modded class AnimalBase
 	}
 
 	/**
-	    \brief Decrement animal gauge on entity delete.
+	    \brief Decrement animal count on entity delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{
@@ -45,7 +45,7 @@ modded class AnimalBase
 			if (m_StateZ_IsKilled)
 				StateZ_Storage.s_AnimalsCorpses -= 1;
 
-			if (StateZ_Config.IsLoaded() || !StateZ_Config.Get().disabled_metrics.animals)
+			if (!StateZ_Config.Get().disabled_metrics.animals)
 				StateZ_AnimalStats.OnDelete(this);
 		}
 
@@ -100,10 +100,10 @@ modded class AnimalBase
 	}
 
 	/**
-	    \brief Public helper for StateZ: returns cached canonical label name for this animal.
-	    \details You can override this for set some beauty label name for your animal.
+	    \brief Public helper for StateZ: returns cached canonical type name for this animal.
+	    \details You can override this for set some beauty type name for your animal.
 	*/
-	string StateZ_GetLabelTypeName()
+	string StateZ_GetTypeName()
 	{
 		return StateZ_GetAnimalNameFromConfig();
 	}
@@ -123,7 +123,7 @@ modded class AnimalBase
 
 		// cache hit
 		string cached;
-		if (s_StateZ_LabelNames && s_StateZ_LabelNames.Find(type, cached))
+		if (s_StateZ_TypeNames && s_StateZ_TypeNames.Find(type, cached))
 			return cached;
 
 		string cfgSteaks = string.Format("%1 %2 Skinning ObtainedSteaks item", CFG_VEHICLESPATH, type);
@@ -171,9 +171,9 @@ modded class AnimalBase
 		result.ToLower();
 
 		// cache store
-		if (!s_StateZ_LabelNames)
-			s_StateZ_LabelNames = new map<string, string>();
-		s_StateZ_LabelNames.Set(type, result);
+		if (!s_StateZ_TypeNames)
+			s_StateZ_TypeNames = new map<string, string>();
+		s_StateZ_TypeNames.Set(type, result);
 
 		return result;
 	}

@@ -11,7 +11,7 @@
 modded class Edible_Base
 {
 	/**
-	    \brief Increment food gauge on init.
+	    \brief Increment food count on init.
 	*/
 	override void EEInit()
 	{
@@ -28,7 +28,7 @@ modded class Edible_Base
 	}
 
 	/**
-	    \brief Decrement food gauge on delete.
+	    \brief Decrement food count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{
@@ -106,7 +106,7 @@ modded class Edible_Base
 /**
     \brief Canonical food categories for StateZ.
     \details
-      - Mapped from Edible_Base runtime type to stable labeled groups.
+      - Mapped from Edible_Base runtime type to stable groups.
       - Order is fixed; values are static and used as map keys in StateZ_Storage.
 */
 enum StateZ_FoodTypes {

@@ -39,7 +39,7 @@ modded class EffectArea
 	}
 
 	/**
-	    \brief Unregister metrics and decrement gauge on delete.
+	    \brief Unregister metrics and decrement count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{
@@ -49,7 +49,7 @@ modded class EffectArea
 	}
 
 	/**
-	    \brief Increase insiders players gauge.
+	    \brief Increase insiders players count.
 	*/
 	override void OnPlayerEnterServer(PlayerBase player, EffectTrigger trigger)
 	{
@@ -60,7 +60,7 @@ modded class EffectArea
 	}
 
 	/**
-	    \brief Decrease insiders players gauge.
+	    \brief Decrease insiders players count.
 	*/
 	override void OnPlayerExitServer(PlayerBase player, EffectTrigger trigger)
 	{
@@ -108,7 +108,7 @@ modded class EffectArea
 
 	/**
 	    \brief Initialize metrics tracking for this zone.
-	    \details Updates global gauge, registers in StateZ_EffectAreaRegistry, creates metric instance.
+	    \details Updates global count, registers in StateZ_EffectAreaRegistry, creates metric instance.
 	*/
 	protected void StateZ_Init()
 	{
@@ -134,7 +134,7 @@ modded class EffectArea
 
 	/**
 	    \brief Cleanup metrics on deletion.
-	    \details Updates global gauge, unregisters from registry, destroys metric instance.
+	    \details Updates global count, unregisters from registry, destroys metric instance.
 	*/
 	protected void StateZ_Delete()
 	{

@@ -8,7 +8,7 @@
 #ifdef SERVER
 /**
     \brief Per-player data collector.
-    \details Stores plain fields updated during scrape. Fills snapshot on demand.
+    \details Stores plain fields updated during collection. Fills snapshot on demand.
 */
 class StateZ_PlayerMetrics
 {
@@ -143,7 +143,7 @@ class StateZ_PlayerMetrics
 
 	/**
 	    \brief Per-frame hook from PlayerBase to sample network stats.
-	    \details Called at most 1 Hz per player to accumulate min/max over scrape window.
+	    \details Called at most 1 Hz per player to accumulate min/max over collection window.
 	*/
 	void SampleNetwork()
 	{

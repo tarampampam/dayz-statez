@@ -12,7 +12,7 @@
 modded class TentBase
 {
 	/**
-	    \brief Increment tents gauge on init.
+	    \brief Increment tents count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class TentBase
 	}
 
 	/**
-	    \brief Decrement tents gauge on delete.
+	    \brief Decrement tents count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

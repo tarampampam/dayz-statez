@@ -12,7 +12,7 @@
 modded class UndergroundStash
 {
 	/**
-	    \brief Increment stashes gauge on init.
+	    \brief Increment stashes count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class UndergroundStash
 	}
 
 	/**
-	    \brief Decrement stashes gauge on delete.
+	    \brief Decrement stashes count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

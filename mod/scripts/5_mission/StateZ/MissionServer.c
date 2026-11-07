@@ -11,14 +11,14 @@
 */
 modded class MissionServer : MissionBase
 {
-	protected ref StateZ_Exporter m_StateZ;
+	protected ref StateZ_Scheduler m_StateZ;
 
 	/**
-	    \brief Initialize StateZ and schedule first scrape.
+	    \brief Initialize StateZ and schedule first collection.
 	*/
 	override void OnInit()
 	{
-		m_StateZ = StateZ_Exporter.Get();
+		m_StateZ = StateZ_Scheduler.Get();
 
 		super.OnInit();
 	}

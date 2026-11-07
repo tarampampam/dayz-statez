@@ -31,7 +31,7 @@ class StateZ_CollectorBase
 	}
 
 	/**
-	    \brief Main flush method called by the exporter each scrape cycle.
+	    \brief Main flush method called by the scheduler each collection cycle.
 	*/
 	void Flush()
 	{

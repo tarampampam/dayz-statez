@@ -20,7 +20,7 @@ class StateZ_ZombieStatsDTO
 }
 
 /**
-    \brief Infected live gauges.
+    \brief Infected live counts.
     \details
       - tracks per-mind-state counts
       - tracks infected count by canonical zombie type
@@ -100,7 +100,7 @@ class StateZ_ZombieStats
 		if (!zombie)
 			return;
 
-		AddType(zombie.StateZ_GetLabelTypeName(), 1);
+		AddType(zombie.StateZ_GetTypeName(), 1);
 	}
 
 	/**
@@ -113,7 +113,7 @@ class StateZ_ZombieStats
 		AddState(state, -1);
 
 		if (zombie)
-			AddType(zombie.StateZ_GetLabelTypeName(), -1);
+			AddType(zombie.StateZ_GetTypeName(), -1);
 	}
 
 	/**

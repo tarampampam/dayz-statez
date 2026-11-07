@@ -12,7 +12,7 @@
 modded class CarDoor
 {
 	/**
-	    \brief Increment car_parts gauge on init.
+	    \brief Increment car_parts count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class CarDoor
 	}
 
 	/**
-	    \brief Decrement car_parts gauge on delete.
+	    \brief Decrement car_parts count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

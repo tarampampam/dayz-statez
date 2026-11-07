@@ -17,11 +17,11 @@ modded class ZombieBase
 	protected bool m_StateZ_IsLastHit;
 	// last reported mind state
 	protected int m_StateZ_State = -1;
-	// cache for zombie types used in labels: original class -> canonical type
-	protected static ref map<string, string> s_StateZ_LabelNames = new map<string, string>();
+	// cache for canonical zombie type names: original class -> canonical type
+	protected static ref map<string, string> s_StateZ_TypeNames = new map<string, string>();
 
 	/**
-	    \brief Increment infected gauge on entity init.
+	    \brief Increment infected count on entity init.
 	*/
 	override void EEInit()
 	{
@@ -37,7 +37,7 @@ modded class ZombieBase
 	}
 
 	/**
-	    \brief Decrement infected gauge and update mind-state stats on delete.
+	    \brief Decrement infected count and update mind-state stats on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{
@@ -126,9 +126,9 @@ modded class ZombieBase
 
 	/**
 	    \brief Public helper for StateZ: returns cached canonical zombie type.
-	    \details You can override this for set some beauty label name for your zombie.
+	    \details You can override this for set some beauty type name for your zombie.
 	*/
-	string StateZ_GetLabelTypeName()
+	string StateZ_GetTypeName()
 	{
 		return StateZ_GetZombieTypeFromConfig();
 	}
@@ -147,7 +147,7 @@ modded class ZombieBase
 
 		// cache hit
 		string cached;
-		if (s_StateZ_LabelNames && s_StateZ_LabelNames.Find(type, cached))
+		if (s_StateZ_TypeNames && s_StateZ_TypeNames.Find(type, cached))
 			return cached;
 
 		string result;
@@ -204,9 +204,9 @@ modded class ZombieBase
 		}
 
 		// cache store
-		if (!s_StateZ_LabelNames)
-			s_StateZ_LabelNames = new map<string, string>();
-		s_StateZ_LabelNames.Set(type, result);
+		if (!s_StateZ_TypeNames)
+			s_StateZ_TypeNames = new map<string, string>();
+		s_StateZ_TypeNames.Set(type, result);
 
 		return result;
 	}

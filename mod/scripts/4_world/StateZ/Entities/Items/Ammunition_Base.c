@@ -12,7 +12,7 @@
 modded class Ammunition_Base
 {
 	/**
-	    \brief Increment ammo gauge on init.
+	    \brief Increment ammo count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class Ammunition_Base
 	}
 
 	/**
-	    \brief Decrement ammo gauge on delete.
+	    \brief Decrement ammo count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

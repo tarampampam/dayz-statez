@@ -35,20 +35,6 @@ class StateZ_Time
 	}
 
 	/**
-	    \brief Unix epoch seconds in UTC.
-	    \return int Epoch seconds (wall-clock UTC).
-	*/
-	static int EpochSecondsUTC()
-	{
-		int y, m, d;
-		int hh, mm, ss;
-		GetYearMonthDayUTC(y, m, d);
-		GetHourMinuteSecondUTC(hh, mm, ss);
-
-		return EpochSecondsForDate(y, m, d, hh, mm, ss);
-	}
-
-	/**
 	    \brief Count leap years up to year-1 (Gregorian).
 	    \param year Target year
 	    \return int Number of leap years

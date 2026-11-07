@@ -12,7 +12,7 @@
 modded class GardenPlot
 {
 	/**
-	    \brief Increment gardens gauge on init.
+	    \brief Increment gardens count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class GardenPlot
 	}
 
 	/**
-	    \brief Decrement gardens gauge on delete.
+	    \brief Decrement gardens count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

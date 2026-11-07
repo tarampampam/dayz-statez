@@ -46,18 +46,6 @@ class StateZ_TransportRegistry
 	}
 
 	/**
-	    \brief Create a snapshot copy of current registered transports.
-	    \details Used to safely iterate without modifying the live registry.
-	    \param[out] transport Output array with snapshot of transport objects
-	*/
-	static void Snapshot(out array<Transport> transport)
-	{
-		transport = new array<Transport>();
-		for (int i = 0; i < s_Registry.Count(); ++i)
-			transport.Insert(s_Registry[i]);
-	}
-
-	/**
 	    \brief Returns direct reference to the live registry
 	    \warning Do NOT modify this array (Remove/Insert) while iterating!
 	*/

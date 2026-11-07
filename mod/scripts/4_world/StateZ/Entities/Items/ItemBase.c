@@ -12,7 +12,7 @@
 modded class ItemBase
 {
 	/**
-	    \brief Increment items gauge on init.
+	    \brief Increment items count on init.
 	*/
 	override void EEInit()
 	{
@@ -29,7 +29,7 @@ modded class ItemBase
 	}
 
 	/**
-	    \brief Decrement items gauge on delete.
+	    \brief Decrement items count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{
@@ -46,10 +46,10 @@ modded class ItemBase
 	}
 
 	/**
-	    \brief Public helper for StateZ: returns cached canonical label name for this item.
-	    \details You can override this for set some beauty label name for your item.
+	    \brief Public helper for StateZ: returns cached canonical type name for this item.
+	    \details You can override this for set some beauty type name for your item.
 	*/
-	string StateZ_GetLabelTypeName()
+	string StateZ_GetTypeName()
 	{
 		return StateZ_ObjectName.GetName(this, true);
 	}

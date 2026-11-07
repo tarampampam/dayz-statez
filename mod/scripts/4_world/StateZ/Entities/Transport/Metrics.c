@@ -8,7 +8,7 @@
 #ifdef SERVER
 /**
     \brief Per-Transport data collector.
-    \details Stores plain fields updated during scrape. Fills snapshot on demand.
+    \details Stores plain fields updated during collection. Fills snapshot on demand.
 */
 class StateZ_TransportMetrics
 {

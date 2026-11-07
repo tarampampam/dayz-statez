@@ -45,18 +45,6 @@ class StateZ_EffectAreaRegistry
 	}
 
 	/**
-	    \brief Create a snapshot copy of current registered areas.
-	    \details Used to safely iterate without modifying the live registry.
-	    \param[out] areas Output array with snapshot of areas
-	*/
-	static void Snapshot(out array<EffectArea> areas)
-	{
-		areas = new array<EffectArea>();
-		for (int i = 0; i < s_Registry.Count(); ++i)
-			areas.Insert(s_Registry[i]);
-	}
-
-	/**
 	    \brief Returns direct reference to the live registry
 	    \warning Do NOT modify this array (Remove/Insert) while iterating!
 	*/

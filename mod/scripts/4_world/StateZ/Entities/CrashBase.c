@@ -12,7 +12,7 @@
 modded class CrashBase
 {
 	/**
-	    \brief Increment crash sites gauge on init.
+	    \brief Increment crash sites count on init.
 	*/
 	override void EEInit()
 	{
@@ -22,7 +22,7 @@ modded class CrashBase
 	}
 
 	/**
-	    \brief Decrement crash sites gauge on delete.
+	    \brief Decrement crash sites count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

@@ -12,7 +12,7 @@
 modded class Box_Base
 {
 	/**
-	    \brief Increment boxes or ammo_boxes gauge on init.
+	    \brief Increment boxes or ammo_boxes count on init.
 	*/
 	override void EEInit()
 	{
@@ -25,7 +25,7 @@ modded class Box_Base
 	}
 
 	/**
-	    \brief Decrement boxes or ammo_boxes gauge on delete.
+	    \brief Decrement boxes or ammo_boxes count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

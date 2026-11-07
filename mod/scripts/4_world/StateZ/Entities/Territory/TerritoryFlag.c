@@ -15,7 +15,7 @@ modded class TerritoryFlag
 
 	/**
 	    \brief Track territory flag and register metrics collector.
-	    \details Increments gauge, registers in registry unless disabled.
+	    \details Increments count, registers in registry unless disabled.
 	*/
 	override void EEInit()
 	{
@@ -37,7 +37,7 @@ modded class TerritoryFlag
 	}
 
 	/**
-	    \brief Unregister metrics and decrement gauge on delete.
+	    \brief Unregister metrics and decrement count on delete.
 	*/
 	override void EEDelete(EntityAI parent)
 	{

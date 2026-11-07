@@ -28,7 +28,7 @@ class StateZ_WeaponStatsDTO
     \details
       - counts total shots and per-weapon shots
       - tracks live weapons count per canonical type
-      Weapon key is canonicalized and lowercased via Weapon_Base::StateZ_GetLabelTypeName().
+      Weapon key is canonicalized and lowercased via Weapon_Base::StateZ_GetTypeName().
 */
 class StateZ_WeaponStats
 {
@@ -46,7 +46,7 @@ class StateZ_WeaponStats
 		if (!weapon)
 			return;
 
-		IncMap(s_ShotsByWeapon, weapon.StateZ_GetLabelTypeName());
+		IncMap(s_ShotsByWeapon, weapon.StateZ_GetTypeName());
 	}
 
 	/**
@@ -58,7 +58,7 @@ class StateZ_WeaponStats
 		if (!weapon)
 			return;
 
-		IncMap(s_CountByType, weapon.StateZ_GetLabelTypeName());
+		IncMap(s_CountByType, weapon.StateZ_GetTypeName());
 	}
 
 	/**
@@ -94,7 +94,7 @@ class StateZ_WeaponStats
 		if (!weapon)
 			return;
 
-		string type = weapon.StateZ_GetLabelTypeName();
+		string type = weapon.StateZ_GetTypeName();
 
 		int v;
 		if (!s_CountByType.Find(type, v))
@@ -133,7 +133,7 @@ class StateZ_WeaponStats
 
 		Weapon_Base wpn;
 		if (Class.CastTo(wpn, source))
-			return wpn.StateZ_GetLabelTypeName();
+			return wpn.StateZ_GetTypeName();
 
 		if (source.IsInherited(ZombieBase))
 			return "zombie";

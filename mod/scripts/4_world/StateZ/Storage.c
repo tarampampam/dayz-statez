@@ -14,10 +14,6 @@ class StateZ_Storage
 {
 	protected static bool s_Initialized; //!< Initialization flag.
 
-	// Core
-	static int s_Status;
-	static int s_ScrapeSkippedTotal;
-
 	// FPS
 	static float s_FPS;
 	static float s_FPSMin;
@@ -146,7 +142,6 @@ class StateZ_Storage
 		if (s_Initialized || !StateZ_Config.IsLoaded())
 			return;
 
-		s_Status = 1;
 		s_MaxPlayers = StateZ_Config.Get().max_players;
 		s_FPSLimit = StateZ_Config.Get().fps_limit;
 
@@ -154,7 +149,7 @@ class StateZ_Storage
 	}
 
 	/**
-	    \brief Refresh gauge values from game state.
+	    \brief Refresh values from game state.
 	*/
 	static void Update()
 	{

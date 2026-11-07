@@ -18,7 +18,7 @@ class StateZ_AnimalStatsDTO
 }
 
 /**
-    \brief Animals-by-type gauges.
+    \brief Animals-by-type counts.
     \details Tracks live animals count per canonical type. Updated on EEInit/EEDelete.
 */
 class StateZ_AnimalStats
@@ -33,7 +33,7 @@ class StateZ_AnimalStats
 		if (!animal)
 			return;
 
-		string type = animal.StateZ_GetLabelTypeName();
+		string type = animal.StateZ_GetTypeName();
 
 		int v;
 		if (s_CountByType.Find(type, v))
@@ -50,7 +50,7 @@ class StateZ_AnimalStats
 		if (!animal)
 			return;
 
-		string type = animal.StateZ_GetLabelTypeName();
+		string type = animal.StateZ_GetTypeName();
 
 		int v;
 		if (!s_CountByType.Find(type, v))

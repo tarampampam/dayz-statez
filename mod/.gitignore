@@ -1,0 +1,6 @@
+## Temp dirs & trash
+/temp
+/tmp
+
+## Etc
+/.build

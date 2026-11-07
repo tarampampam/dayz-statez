@@ -9,10 +9,11 @@ tools/depbo:
 	rm -v ./tools/depbo.tgz
 
 ## Build the server-ready mod into ./dist/mod/
+.PHONY: dist/mod
 dist/mod: tools/depbo
-	rm -rf ./.build-mod ./dist/mod
-	mkdir -p ./.build-mod ./dist/mod/@metricz/addons
-	cp config.cpp ./.build-mod/
-	cp -r scripts ./.build-mod/
-	LD_LIBRARY_PATH=./tools/depbo/lib ./tools/depbo/bin/makepbo -P -D -@=metricz ./.build-mod ./dist/mod/@metricz/addons/metricz.pbo
-	rm -rf ./.build-mod
+	@rm -rf ./mod/.build ./dist/mod
+	mkdir -pv ./mod/.build ./dist/mod/@metricz/addons
+	cp -rv ./mod/config.cpp ./mod/scripts ./mod/.build/
+	LD_LIBRARY_PATH=./tools/depbo/lib ./tools/depbo/bin/makepbo \
+		-P -D -@=metricz ./mod/.build ./dist/mod/@metricz/addons/metricz.pbo
+	@rm -rf ./mod/.build

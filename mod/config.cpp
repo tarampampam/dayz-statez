@@ -7,35 +7,34 @@
 
 class CfgMods
 {
-	class MetricZ
+	class StateZ
 	{
 		type = "mod";
-		dir = "metricz";
-		name = "MetricZ — Server Data Exporter for DayZ";
+		dir = "statez";
+		name = "StateZ — Server Data Exporter for DayZ";
 		version = "0.1.0";
 		credits = "WoozyMasta";
-		author = "WoozyMasta";
-		authorID = "76561198037610867";
+		author = "tarampampam";
 		hideName = 1;
 		hidePicture = 1;
-		defines[] = {"METRICZ"};
+		defines[] = {"STATEZ"};
 		dependencies[] = {"game", "world", "mission"};
 
 		class defs
 		{
 			class gameScriptModule
 			{
-				files[] = {"metricz/scripts/3_game"};
+				files[] = {"statez/scripts/3_game"};
 			};
 
 			class worldScriptModule
 			{
-				files[] = { "metricz/scripts/4_world" };
+				files[] = { "statez/scripts/4_world" };
 			};
 
 			class missionScriptModule
 			{
-				files[] = { "metricz/scripts/5_mission" };
+				files[] = { "statez/scripts/5_mission" };
 			};
 		};
 	};
@@ -43,7 +42,7 @@ class CfgMods
 
 class CfgPatches
 {
-	class MetricZ
+	class StateZ
 	{
 		requiredAddons[] = {
 			"DZ_Data",

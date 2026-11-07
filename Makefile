@@ -12,8 +12,8 @@ tools/depbo:
 .PHONY: dist/mod
 dist/mod: tools/depbo
 	@rm -rf ./mod/.build ./dist/mod
-	mkdir -pv ./mod/.build ./dist/mod/@metricz/addons
+	mkdir -pv ./mod/.build ./dist/mod/@statez/addons
 	cp -rv ./mod/config.cpp ./mod/scripts ./mod/.build/
 	LD_LIBRARY_PATH=./tools/depbo/lib ./tools/depbo/bin/makepbo \
-		-P -D -@=metricz ./mod/.build ./dist/mod/@metricz/addons/metricz.pbo
+		-P -D -@=statez ./mod/.build ./dist/mod/@statez/addons/statez.pbo
 	@rm -rf ./mod/.build

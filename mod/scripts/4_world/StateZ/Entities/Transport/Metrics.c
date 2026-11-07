@@ -147,9 +147,13 @@ class StateZ_TransportMetrics
 		m_ClassName = m_Transport.GetType();
 		m_ClassName.TrimInPlace();
 
-		m_VehicleType = m_Transport.GetVehicleType();
-		m_VehicleType.TrimInPlace();
-		m_VehicleType.Replace("VehicleType", "");
+		// In-place string methods (Replace/TrimInPlace) do NOT mutate class member
+		// fields in Enforce — operate on a local, then assign. (Same for GetType()/
+		// GetVehicleType() results: works on a local, no-ops on a member.)
+		string vt = m_Transport.GetVehicleType();
+		vt.TrimInPlace();
+		vt.Replace("VehicleType", "");
+		m_VehicleType = vt;
 
 		m_Hash = PersistentHash(m_Transport);
 	}

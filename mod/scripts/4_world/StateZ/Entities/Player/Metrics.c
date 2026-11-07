@@ -245,17 +245,19 @@ class StateZ_PlayerMetrics
 		string _t;
 		m_BloodType = BloodTypes.GetBloodTypeName(m_Player.GetStatBloodType().Get(), _t, _p);
 
+		// In-place string methods do NOT mutate class member fields in Enforce —
+		// operate on a local, then assign.
+		string ct = m_Player.GetType();
 		if (m_Player.IsMale()) {
 			m_Gender = "male";
-			m_CharacterType = m_Player.GetType();
-			m_CharacterType.Replace("SurvivorM_", "");
+			ct.Replace("SurvivorM_", "");
 		} else {
 			m_Gender = "female";
-			m_CharacterType = m_Player.GetType();
-			m_CharacterType.Replace("SurvivorF_", "");
+			ct.Replace("SurvivorF_", "");
 		}
 
-		m_CharacterType.TrimInPlace();
+		ct.TrimInPlace();
+		m_CharacterType = ct;
 	}
 
 	/**

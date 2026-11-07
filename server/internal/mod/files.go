@@ -1,5 +1,11 @@
 package mod
 
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
+
 type FileName string
 
 const (
@@ -14,6 +20,40 @@ const (
 	WorldFileName       FileName = "world.json"       // ~1.5 KiB on empty server
 	ZombiesFileName     FileName = "zombies.json"     // ~180 bytes on empty server
 )
+
+// EnforceScriptBool is a JSON-flexible boolean. EnforceScript (the DayZ mod runtime) serializes bool as the number
+// 0/1, but other producers may emit a real JSON bool or a quoted string. On decode it accepts all three forms (via
+// strconv.ParseBool); on encode it always emits a real JSON boolean.
+type EnforceScriptBool bool
+
+// UnmarshalJSON accepts a JSON bool (true/false), number (0/1), or string ("true"/"1"/"0"/...), parsed with
+// strconv.ParseBool. JSON null -> false.
+func (b *EnforceScriptBool) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(strings.TrimSpace(string(data)), `"`)
+	if s == "" || s == "null" {
+		*b = false
+
+		return nil
+	}
+
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		return fmt.Errorf("mod: cannot decode %q as bool: %w", string(data), err)
+	}
+
+	*b = EnforceScriptBool(v)
+
+	return nil
+}
+
+// MarshalJSON always emits a real JSON boolean (true/false).
+func (b EnforceScriptBool) MarshalJSON() ([]byte, error) {
+	if b {
+		return []byte("true"), nil
+	}
+
+	return []byte("false"), nil
+}
 
 type (
 	// World is the DTO for WorldFileName file. It contains a single snapshot of the world state at the collection time.
@@ -180,8 +220,8 @@ type (
 		// e.g. "Judy", "Boris". Derived from GetType().
 		CharacterType string `json:"character_type"`
 
-		// IsLoaded - boolean (0/1): character finished loading (IsPlayerLoaded()).
-		IsLoaded int `json:"is_loaded"`
+		// IsLoaded reports whether the character finished loading (IsPlayerLoaded()).
+		IsLoaded EnforceScriptBool `json:"is_loaded"`
 		// Health is normalized global health, 0..1.
 		Health float64 `json:"health"`
 		// Blood is normalized blood level, 0..1.
@@ -222,14 +262,14 @@ type (
 		AgentsActive int `json:"agents_active"`
 		// BleedingSources is the number of active bleeding sources (set bits of GetBleedingBits()).
 		BleedingSources int `json:"bleeding_sources"`
-		// ImmunityBoosted - boolean (0/1): immunity is currently boosted.
-		ImmunityBoosted int `json:"immunity_boosted"`
-		// IsUnconscious - boolean (0/1).
-		IsUnconscious int `json:"is_unconscious"`
-		// IsRestrained - boolean (0/1): handcuffed/restrained.
-		IsRestrained int `json:"is_restrained"`
-		// Godmode - boolean (0/1): damage is disabled (!GetAllowDamage()).
-		Godmode int `json:"godmode"`
+		// ImmunityBoosted reports whether immunity is currently boosted.
+		ImmunityBoosted EnforceScriptBool `json:"immunity_boosted"`
+		// IsUnconscious reports whether the player is unconscious.
+		IsUnconscious EnforceScriptBool `json:"is_unconscious"`
+		// IsRestrained reports whether the player is restrained (handcuffed).
+		IsRestrained EnforceScriptBool `json:"is_restrained"`
+		// Godmode reports whether damage is disabled (!GetAllowDamage()).
+		Godmode EnforceScriptBool `json:"godmode"`
 
 		// StatPlaytimeSeconds is lifetime playtime from server analytics, seconds.
 		StatPlaytimeSeconds float64 `json:"stat_playtime_seconds"`
@@ -265,8 +305,8 @@ type (
 		CrewOccupied int `json:"crew_occupied"`
 		// SpeedMS is the current speed in m/s (small values snapped to 0).
 		SpeedMS float64 `json:"speed_ms"`
-		// EngineOn - boolean (0/1): engine running.
-		EngineOn int `json:"engine_on"`
+		// EngineOn reports whether the engine is running.
+		EngineOn EnforceScriptBool `json:"engine_on"`
 		// FuelFraction is tank fill level, 0..1; -1.0 when the vehicle has no fuel system / fuel is not applicable.
 		FuelFraction float64 `json:"fuel_fraction"`
 

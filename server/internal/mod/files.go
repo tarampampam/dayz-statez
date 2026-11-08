@@ -1,58 +1,261 @@
 package mod
 
 import (
-	"fmt"
+	"bytes"
 	"strconv"
-	"strings"
 )
 
-type FileName string
+type DataFileName string
 
 const (
-	AnimalsFileName     FileName = "animals.json"     // ~80 bytes on empty server
-	AreasFileName       FileName = "areas.json"       // ~1.5 KiB on empty server
-	EventsFileName      FileName = "events.json"      // ~170 bytes on empty server
-	HitsFileName        FileName = "hits.json"        // ~30 bytes on empty server
-	PlayersFileName     FileName = "players.json"     // ~1 KiB for 1 player
-	TerritoriesFileName FileName = "territories.json" // 2 bytes on empty server
-	VehiclesFileName    FileName = "vehicles.json"    // ~17 KiB on empty server
-	WeaponsFileName     FileName = "weapons.json"     // ~600 bytes on empty server
-	WorldFileName       FileName = "world.json"       // ~1.5 KiB on empty server
-	ZombiesFileName     FileName = "zombies.json"     // ~180 bytes on empty server
+	AnimalsFileName     DataFileName = "animals.json"     // ~80 bytes on empty server
+	AreasFileName       DataFileName = "areas.json"       // ~1.5 KiB on empty server
+	EventsFileName      DataFileName = "events.json"      // ~170 bytes on empty server
+	HitsFileName        DataFileName = "hits.json"        // ~30 bytes on empty server
+	PlayersFileName     DataFileName = "players.json"     // ~1 KiB for 1 player
+	TerritoriesFileName DataFileName = "territories.json" // 2 bytes on empty server
+	VehiclesFileName    DataFileName = "vehicles.json"    // ~17 KiB on empty server
+	WeaponsFileName     DataFileName = "weapons.json"     // ~600 bytes on empty server
+	WorldFileName       DataFileName = "world.json"       // ~1.5 KiB on empty server
+	ZombiesFileName     DataFileName = "zombies.json"     // ~180 bytes on empty server
 )
 
-// EnforceScriptBool is a JSON-flexible boolean. EnforceScript (the DayZ mod runtime) serializes bool as the number
-// 0/1, but other producers may emit a real JSON bool or a quoted string. On decode it accepts all three forms (via
-// strconv.ParseBool); on encode it always emits a real JSON boolean.
-type EnforceScriptBool bool
+// esBool is a JSON-flexible boolean. EnforceScript (the DayZ mod runtime) serializes bool as the number
+// 0/1, but other producers may emit a real JSON bool or a quoted string.
+type esBool bool
 
-// UnmarshalJSON accepts a JSON bool (true/false), number (0/1), or string ("true"/"1"/"0"/...), parsed with
-// strconv.ParseBool. JSON null -> false.
-func (b *EnforceScriptBool) UnmarshalJSON(data []byte) error {
-	s := strings.Trim(strings.TrimSpace(string(data)), `"`)
-	if s == "" || s == "null" {
+// UnmarshalJSON accepts a JSON bool (true/false), number (0/1), or string ("true"/"1"/"0"/...). JSON null -> false.
+func (b *esBool) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+
+	// empty shit
+	if len(data) == 0 {
 		*b = false
-
 		return nil
 	}
 
-	v, err := strconv.ParseBool(s)
-	if err != nil {
-		return fmt.Errorf("mod: cannot decode %q as bool: %w", string(data), err)
+	// null
+	if bytes.Equal(data, []byte("null")) {
+		return nil // encoding/json convention: null is a no-op
 	}
 
-	*b = EnforceScriptBool(v)
+	// bool-like value
+	if v, err := strconv.ParseBool(string(data)); err == nil {
+		*b = esBool(v)
+		return nil
+	}
+
+	// give a chance for float/numeric-like value
+	f, err := strconv.ParseFloat(string(data), 64)
+	if err == nil {
+		*b = f >= 1
+	}
 
 	return nil
 }
 
 // MarshalJSON always emits a real JSON boolean (true/false).
-func (b EnforceScriptBool) MarshalJSON() ([]byte, error) {
+func (b esBool) MarshalJSON() ([]byte, error) {
 	if b {
 		return []byte("true"), nil
 	}
 
 	return []byte("false"), nil
+}
+
+// Animals is the DTO for AnimalsFileName file.
+type Animals struct {
+	// ByType maps canonical animal type -> live count, e.g. "wolf", "deer", "cow", "pig", "sheep", "goat", "bear".
+	// Keys are derived from the animal's steak/pelt config, lowercased. Dynamic key set.
+	ByType map[string]int `json:"by_type"`
+}
+
+type (
+	// Areas is the DTO for AreasFileName file.
+	Areas []Area
+
+	// Area is a single contaminated/effect area.
+	Area struct {
+		// Type is the zone type from engine enum eZoneType: "STATIC" (preset gas zones) or "DYNAMIC"
+		// (artillery/toxic events).
+		Type string `json:"type"`
+		// ClassName is the area entity class, e.g. "ContaminatedArea_Static", "ContaminatedArea_Dynamic".
+		ClassName string `json:"class_name"`
+		// PosX/PosY are the area center on the horizontal map plane.
+		PosX float64 `json:"pos_x"`
+		PosY float64 `json:"pos_y"`
+		// Radius is the area radius in meters.
+		Radius float64 `json:"radius"`
+		// Insiders is the number of players currently inside the area.
+		Insiders int `json:"insiders"`
+	}
+)
+
+// Events is the DTO for EventsFileName file.
+// Counts every engine EventType seen on the server.
+type Events struct {
+	// Events maps event name -> cumulative occurrences since server start. Keys are human-readable engine event names
+	// (e.g. "ClientConnected", "ClientDisconnected", "PlayerDeath", "ChatMessage", "MPSessionStart"), or "unknown_<id>"
+	// for event ids without a known name.
+	Events map[string]int `json:"events"`
+}
+
+// Hits is the DTO for HitsFileName file.
+type Hits struct {
+	// PlayerHit maps ammo type -> cumulative qualifying hits on players.
+	PlayerHit map[string]int `json:"player_hit"`
+	// CreatureHit maps ammo type -> cumulative qualifying hits on creatures.
+	CreatureHit map[string]int `json:"creature_hit"`
+}
+
+type (
+	// Players is the DTO for PlayersFileName file.
+	Players []Player
+
+	// Player is a single player snapshot.
+	Player struct {
+		// SteamID is the player's Steam ID (PlayerIdentity.GetPlainId()).
+		SteamID string `json:"steam_id"`
+		// GUID is the DayZ identity id / BE GUID basis (PlayerIdentity.GetId()).
+		GUID string `json:"guid"`
+		// Name is the player display name.
+		Name string `json:"name"`
+		// BloodType is the human-readable blood type incl. Rh sign, e.g. "A+", "O-".
+		BloodType string `json:"blood_type"`
+		// Gender is "male" or "female".
+		Gender string `json:"gender"`
+		// CharacterType is the survivor variant with the "SurvivorM_"/"SurvivorF_" prefix stripped by the mod,
+		// e.g. "Judy", "Boris". Derived from GetType().
+		CharacterType string `json:"character_type"`
+
+		// IsLoaded reports whether the character finished loading (IsPlayerLoaded()).
+		IsLoaded esBool `json:"is_loaded"`
+		// Health is normalized global health, 0..1.
+		Health float64 `json:"health"`
+		// Blood is normalized blood level, 0..1.
+		Blood float64 `json:"blood"`
+		// Shock is normalized shock/consciousness health, 0..1.
+		Shock float64 `json:"shock"`
+		// Energy is normalized energy stat, 0..1.
+		Energy float64 `json:"energy"`
+		// Water is normalized hydration stat, 0..1.
+		Water float64 `json:"water"`
+		// Toxicity is normalized toxicity stat, 0..1.
+		Toxicity float64 `json:"toxicity"`
+		// TemperatureCelsius is the player's body temperature, C (~36 when healthy).
+		TemperatureCelsius float64 `json:"temperature_celsius"`
+		// WeightGrams is the carried load in grams (GetPlayerLoad()).
+		WeightGrams float64 `json:"weight_grams"`
+		// Wetness is the wetness stat value.
+		Wetness float64 `json:"wetness"`
+		// LifetimeSeconds is seconds since this character's metrics were created (≈ seconds the character entity has
+		// existed this session).
+		LifetimeSeconds float64 `json:"lifetime_seconds"`
+
+		// PosX/PosY are the horizontal map plane (engine X / engine Z).
+		PosX float64 `json:"pos_x"`
+		PosY float64 `json:"pos_y"`
+		// PosAlt is altitude/height (engine Y), meters.
+		PosAlt float64 `json:"pos_alt"`
+		// PosAngle is yaw heading in degrees.
+		PosAngle float64 `json:"pos_angle"`
+
+		// PingMin/PingMax are min/max ping (ms) observed over the collection window; 0 if unavailable.
+		PingMin int `json:"ping_min"`
+		PingMax int `json:"ping_max"`
+		// Throttle is the network output throttle fraction observed in the window.
+		Throttle float64 `json:"throttle"`
+
+		// AgentsActive is the number of active agents/pathogens (set bits of GetAgents()).
+		AgentsActive int `json:"agents_active"`
+		// BleedingSources is the number of active bleeding sources (set bits of GetBleedingBits()).
+		BleedingSources int `json:"bleeding_sources"`
+		// ImmunityBoosted reports whether immunity is currently boosted.
+		ImmunityBoosted esBool `json:"immunity_boosted"`
+		// IsUnconscious reports whether the player is unconscious.
+		IsUnconscious esBool `json:"is_unconscious"`
+		// IsRestrained reports whether the player is restrained (handcuffed).
+		IsRestrained esBool `json:"is_restrained"`
+		// Godmode reports whether damage is disabled (!GetAllowDamage()).
+		Godmode esBool `json:"godmode"`
+
+		// StatPlaytimeSeconds is lifetime playtime from server analytics, seconds.
+		StatPlaytimeSeconds float64 `json:"stat_playtime_seconds"`
+		// StatDistanceMeters is lifetime distance traveled, meters.
+		StatDistanceMeters float64 `json:"stat_distance_meters"`
+		// StatLongestHitMeters is the longest survivor hit distance, meters.
+		StatLongestHitMeters float64 `json:"stat_longest_hit_meters"`
+		// StatPlayersKilled is lifetime players killed (analytics).
+		StatPlayersKilled int `json:"stat_players_killed"`
+		// StatInfectedKilled is lifetime infected killed (analytics).
+		StatInfectedKilled int `json:"stat_infected_killed"`
+	}
+)
+
+type (
+	// Territories is the DTO for TerritoriesFileName file.
+	Territories []Territory
+
+	// Territory is a single base/territory flag.
+	Territory struct {
+		// PosX/PosY are the flag's horizontal map-plane position.
+		PosX float64 `json:"pos_x"`
+		PosY float64 `json:"pos_y"`
+		// LifetimeFraction is the remaining refresh-timer fraction, 0..1 (GetRefresherTime01()); 1.0 = freshly refreshed.
+		LifetimeFraction float64 `json:"lifetime_fraction"`
+		// RefresherRadius is the flag refresh radius in meters (GameConstants.REFRESHER_RADIUS).
+		RefresherRadius float64 `json:"refresher_radius"`
+	}
+)
+
+type (
+	// Vehicles is the DTO for VehiclesFileName file.
+	Vehicles []Vehicle
+
+	// Vehicle is a single vehicle snapshot.
+	Vehicle struct {
+		// ClassName is the entity class, e.g. "Hatchback_02_Blue", "Boat_01_Black".
+		ClassName string `json:"class_name"`
+		// VehicleType is the engine vehicle category (from GetVehicleType()) with the "VehicleType" prefix stripped by
+		// the mod: "Car", "Boat", "Helicopter" (Expansion vehicles may report their own category).
+		VehicleType string `json:"vehicle_type"`
+		// Hash is a stable non-negative hash of the vehicle's persistent ID (0..2^31-1);
+		// -1 when the persistent ID is unavailable.
+		Hash int `json:"hash"`
+
+		// Health is normalized global health, 0..1.
+		Health float64 `json:"health"`
+		// CrewOccupied is the number of occupied crew seats.
+		CrewOccupied int `json:"crew_occupied"`
+		// SpeedMS is the current speed in m/s (small values snapped to 0).
+		SpeedMS float64 `json:"speed_ms"`
+		// EngineOn reports whether the engine is running.
+		EngineOn esBool `json:"engine_on"`
+		// FuelFraction is tank fill level, 0..1; -1.0 when the vehicle has no fuel system / fuel is not applicable.
+		FuelFraction float64 `json:"fuel_fraction"`
+
+		// PosX/PosY horizontal map plane; PosAlt height (m); PosAngle yaw degrees.
+		PosX     float64 `json:"pos_x"`
+		PosY     float64 `json:"pos_y"`
+		PosAlt   float64 `json:"pos_alt"`
+		PosAngle float64 `json:"pos_angle"`
+	}
+)
+
+// Weapons is the DTO for WeaponsFileName file.
+type Weapons struct {
+	// Shots maps weapon type -> cumulative shots fired since server start.
+	Shots map[string]int `json:"shots"`
+	// WorldCount maps weapon type -> current live weapon-entity count.
+	WorldCount map[string]int `json:"world_count"`
+	// PlayerKills maps kill-source -> cumulative players killed by that source.
+	// See CreatureKills for the source vocabulary.
+	PlayerKills map[string]int `json:"player_kills"`
+	// CreatureKills maps kill-source -> cumulative creatures (infected/animals) killed. Source keys are a weapon type,
+	// or one of the synthetic tokens: "zombie", "animal", "transport", "grenade", "trap", "tool", "player_fist",
+	// "player_melee_item_heavy|two_hands|one_hand", "none", "object", "unknown"
+	// (and "eai_*" variants on EXPANSIONMODAI builds).
+	CreatureKills map[string]int `json:"creature_kills"`
 }
 
 type (
@@ -200,161 +403,6 @@ type (
 	}
 )
 
-type (
-	// Players is the DTO for PlayersFileName file.
-	Players []Player
-
-	// Player is a single player snapshot.
-	Player struct {
-		// SteamID is the player's Steam ID (PlayerIdentity.GetPlainId()).
-		SteamID string `json:"steam_id"`
-		// GUID is the DayZ identity id / BE GUID basis (PlayerIdentity.GetId()).
-		GUID string `json:"guid"`
-		// Name is the player display name.
-		Name string `json:"name"`
-		// BloodType is the human-readable blood type incl. Rh sign, e.g. "A+", "O-".
-		BloodType string `json:"blood_type"`
-		// Gender is "male" or "female".
-		Gender string `json:"gender"`
-		// CharacterType is the survivor variant with the "SurvivorM_"/"SurvivorF_" prefix stripped by the mod,
-		// e.g. "Judy", "Boris". Derived from GetType().
-		CharacterType string `json:"character_type"`
-
-		// IsLoaded reports whether the character finished loading (IsPlayerLoaded()).
-		IsLoaded EnforceScriptBool `json:"is_loaded"`
-		// Health is normalized global health, 0..1.
-		Health float64 `json:"health"`
-		// Blood is normalized blood level, 0..1.
-		Blood float64 `json:"blood"`
-		// Shock is normalized shock/consciousness health, 0..1.
-		Shock float64 `json:"shock"`
-		// Energy is normalized energy stat, 0..1.
-		Energy float64 `json:"energy"`
-		// Water is normalized hydration stat, 0..1.
-		Water float64 `json:"water"`
-		// Toxicity is normalized toxicity stat, 0..1.
-		Toxicity float64 `json:"toxicity"`
-		// TemperatureCelsius is the player's body temperature, C (~36 when healthy).
-		TemperatureCelsius float64 `json:"temperature_celsius"`
-		// WeightGrams is the carried load in grams (GetPlayerLoad()).
-		WeightGrams float64 `json:"weight_grams"`
-		// Wetness is the wetness stat value.
-		Wetness float64 `json:"wetness"`
-		// LifetimeSeconds is seconds since this character's metrics were created (≈ seconds the character entity has
-		// existed this session).
-		LifetimeSeconds float64 `json:"lifetime_seconds"`
-
-		// PosX/PosY are the horizontal map plane (engine X / engine Z).
-		PosX float64 `json:"pos_x"`
-		PosY float64 `json:"pos_y"`
-		// PosAlt is altitude/height (engine Y), meters.
-		PosAlt float64 `json:"pos_alt"`
-		// PosAngle is yaw heading in degrees.
-		PosAngle float64 `json:"pos_angle"`
-
-		// PingMin/PingMax are min/max ping (ms) observed over the collection window; 0 if unavailable.
-		PingMin int `json:"ping_min"`
-		PingMax int `json:"ping_max"`
-		// Throttle is the network output throttle fraction observed in the window.
-		Throttle float64 `json:"throttle"`
-
-		// AgentsActive is the number of active agents/pathogens (set bits of GetAgents()).
-		AgentsActive int `json:"agents_active"`
-		// BleedingSources is the number of active bleeding sources (set bits of GetBleedingBits()).
-		BleedingSources int `json:"bleeding_sources"`
-		// ImmunityBoosted reports whether immunity is currently boosted.
-		ImmunityBoosted EnforceScriptBool `json:"immunity_boosted"`
-		// IsUnconscious reports whether the player is unconscious.
-		IsUnconscious EnforceScriptBool `json:"is_unconscious"`
-		// IsRestrained reports whether the player is restrained (handcuffed).
-		IsRestrained EnforceScriptBool `json:"is_restrained"`
-		// Godmode reports whether damage is disabled (!GetAllowDamage()).
-		Godmode EnforceScriptBool `json:"godmode"`
-
-		// StatPlaytimeSeconds is lifetime playtime from server analytics, seconds.
-		StatPlaytimeSeconds float64 `json:"stat_playtime_seconds"`
-		// StatDistanceMeters is lifetime distance traveled, meters.
-		StatDistanceMeters float64 `json:"stat_distance_meters"`
-		// StatLongestHitMeters is the longest survivor hit distance, meters.
-		StatLongestHitMeters float64 `json:"stat_longest_hit_meters"`
-		// StatPlayersKilled is lifetime players killed (analytics).
-		StatPlayersKilled int `json:"stat_players_killed"`
-		// StatInfectedKilled is lifetime infected killed (analytics).
-		StatInfectedKilled int `json:"stat_infected_killed"`
-	}
-)
-
-type (
-	// Vehicles is the DTO for VehiclesFileName file.
-	Vehicles []Vehicle
-
-	// Vehicle is a single vehicle snapshot.
-	Vehicle struct {
-		// ClassName is the entity class, e.g. "Hatchback_02_Blue", "Boat_01_Black".
-		ClassName string `json:"class_name"`
-		// VehicleType is the engine vehicle category (from GetVehicleType()) with the "VehicleType" prefix stripped by
-		// the mod: "Car", "Boat", "Helicopter" (Expansion vehicles may report their own category).
-		VehicleType string `json:"vehicle_type"`
-		// Hash is a stable non-negative hash of the vehicle's persistent ID (0..2^31-1);
-		// -1 when the persistent ID is unavailable.
-		Hash int `json:"hash"`
-
-		// Health is normalized global health, 0..1.
-		Health float64 `json:"health"`
-		// CrewOccupied is the number of occupied crew seats.
-		CrewOccupied int `json:"crew_occupied"`
-		// SpeedMS is the current speed in m/s (small values snapped to 0).
-		SpeedMS float64 `json:"speed_ms"`
-		// EngineOn reports whether the engine is running.
-		EngineOn EnforceScriptBool `json:"engine_on"`
-		// FuelFraction is tank fill level, 0..1; -1.0 when the vehicle has no fuel system / fuel is not applicable.
-		FuelFraction float64 `json:"fuel_fraction"`
-
-		// PosX/PosY horizontal map plane; PosAlt height (m); PosAngle yaw degrees.
-		PosX     float64 `json:"pos_x"`
-		PosY     float64 `json:"pos_y"`
-		PosAlt   float64 `json:"pos_alt"`
-		PosAngle float64 `json:"pos_angle"`
-	}
-)
-
-type (
-	// Territories is the DTO for TerritoriesFileName file.
-	Territories []Territory
-
-	// Territory is a single base/territory flag.
-	Territory struct {
-		// PosX/PosY are the flag's horizontal map-plane position.
-		PosX float64 `json:"pos_x"`
-		PosY float64 `json:"pos_y"`
-		// LifetimeFraction is the remaining refresh-timer fraction, 0..1 (GetRefresherTime01()); 1.0 = freshly refreshed.
-		LifetimeFraction float64 `json:"lifetime_fraction"`
-		// RefresherRadius is the flag refresh radius in meters (GameConstants.REFRESHER_RADIUS).
-		RefresherRadius float64 `json:"refresher_radius"`
-	}
-)
-
-type (
-	// Areas is the DTO for AreasFileName file.
-	Areas []Area
-
-	// Area is a single contaminated/effect area.
-	Area struct {
-		// Type is the zone type from engine enum eZoneType: "STATIC" (preset gas zones) or "DYNAMIC"
-		// (artillery/toxic events).
-		Type string `json:"type"`
-		// ClassName is the area entity class, e.g. "ContaminatedArea_Static", "ContaminatedArea_Dynamic".
-		ClassName string `json:"class_name"`
-		// PosX/PosY are the area center on the horizontal map plane.
-		PosX float64 `json:"pos_x"`
-		PosY float64 `json:"pos_y"`
-		// Radius is the area radius in meters.
-		Radius float64 `json:"radius"`
-		// Insiders is the number of players currently inside the area.
-		Insiders int `json:"insiders"`
-	}
-)
-
 // Zombies is the DTO for ZombiesFileName file.
 type Zombies struct {
 	// ByType maps canonical infected type -> live count. Keys are derived from the aiAgentTemplate (e.g. "msoldier",
@@ -364,44 +412,4 @@ type Zombies struct {
 	// ByState maps mind state -> live count. Keys: "calm", "disturbed", "alerted", "chase", "fight", and "dead"
 	// (killed, pending cleanup).
 	ByState map[string]int `json:"by_state"`
-}
-
-// Animals is the DTO for AnimalsFileName file.
-type Animals struct {
-	// ByType maps canonical animal type -> live count, e.g. "wolf", "deer", "cow", "pig", "sheep", "goat", "bear".
-	// Keys are derived from the animal's steak/pelt config, lowercased. Dynamic key set.
-	ByType map[string]int `json:"by_type"`
-}
-
-// Weapons is the DTO for WeaponsFileName file.
-type Weapons struct {
-	// Shots maps weapon type -> cumulative shots fired since server start.
-	Shots map[string]int `json:"shots"`
-	// WorldCount maps weapon type -> current live weapon-entity count.
-	WorldCount map[string]int `json:"world_count"`
-	// PlayerKills maps kill-source -> cumulative players killed by that source.
-	// See CreatureKills for the source vocabulary.
-	PlayerKills map[string]int `json:"player_kills"`
-	// CreatureKills maps kill-source -> cumulative creatures (infected/animals) killed. Source keys are a weapon type,
-	// or one of the synthetic tokens: "zombie", "animal", "transport", "grenade", "trap", "tool", "player_fist",
-	// "player_melee_item_heavy|two_hands|one_hand", "none", "object", "unknown"
-	// (and "eai_*" variants on EXPANSIONMODAI builds).
-	CreatureKills map[string]int `json:"creature_kills"`
-}
-
-// Hits is the DTO for HitsFileName file.
-type Hits struct {
-	// PlayerHit maps ammo type -> cumulative qualifying hits on players.
-	PlayerHit map[string]int `json:"player_hit"`
-	// CreatureHit maps ammo type -> cumulative qualifying hits on creatures.
-	CreatureHit map[string]int `json:"creature_hit"`
-}
-
-// Events is the DTO for EventsFileName file.
-// Counts every engine EventType seen on the server.
-type Events struct {
-	// Events maps event name -> cumulative occurrences since server start. Keys are human-readable engine event names
-	// (e.g. "ClientConnected", "ClientDisconnected", "PlayerDeath", "ChatMessage", "MPSessionStart"), or "unknown_<id>"
-	// for event ids without a known name.
-	Events map[string]int `json:"events"`
 }

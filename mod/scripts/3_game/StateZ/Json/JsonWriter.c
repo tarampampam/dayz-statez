@@ -10,19 +10,30 @@
     \brief Utility for writing JSON files atomically.
     \details Writes JSON to a .tmp file, then copies it to the target .json file and removes the temp,
              so consumers never read a partially written file.
+             Write-if-changed: a per-domain hash of the last written content is kept in memory; a flush
+             whose content hash matches the previous one is skipped (no disk write, file mtime unchanged).
 */
 class StateZ_JsonWriter
 {
+	// Per-domain hash of the last written JSON. Skips redundant disk writes.
+	protected static ref map<string, int> s_LastHash = new map<string, int>();
+
 	/**
 	    \brief Write a JSON string atomically to the data directory as name.json.
+	    \details Skips the write entirely when the content hash matches the last write for this domain.
 	    \param name File name without extension.
 	    \param json JSON content to write.
-	    \return true on success.
+	    \return true on success (including a skipped write of unchanged content).
 	*/
 	static bool Write(string name, string json)
 	{
 		if (!StateZ_Config.IsLoaded())
 			return false;
+
+		int hash = json.Hash();
+		int last;
+		if (s_LastHash.Find(name, last) && last == hash)
+			return true; // unchanged since last write — skip disk I/O
 
 		string target = StateZ_Constants.DATA_DIR + name + ".json";
 		string tmp = StateZ_Constants.DATA_DIR + name + ".tmp";
@@ -41,6 +52,7 @@ class StateZ_JsonWriter
 		}
 
 		DeleteFile(tmp);
+		s_LastHash.Set(name, hash); // record only after a successful write
 		return true;
 	}
 
@@ -70,6 +82,7 @@ class StateZ_JsonWriter
 	*/
 	static void DeleteAll()
 	{
+		s_LastHash.Clear(); // drop cached hashes so files are rewritten after a wipe
 		DeleteByPattern(StateZ_Constants.DATA_DIR, "*.json");
 		DeleteByPattern(StateZ_Constants.DATA_DIR, "*.tmp");
 	}

@@ -3,20 +3,17 @@ package mod
 import (
 	"encoding/json"
 	"errors"
-	"os"
+	"io/fs"
 	"sync"
 )
 
 type (
-	// DataDir provides cached, sandboxed read access to the mod's JSON output files inside a single data directory.
-	//
-	// All access goes through [os.Root], so a requested file name can never escape the directory via "..", an
-	// absolute path, or a symlink.
+	// DataDir provides cached read access to the mod's JSON output files inside a single data directory.
 	//
 	// Decoded files are cached and re-read only when a file's size or mtime changes. The mod rewrites a file only
 	// when its content actually changes (write-if-changed), so size+mtime is a reliable "has it changed?" signal.
 	DataDir struct {
-		root *os.Root
+		fsys fs.FS // file source; prefer a sandboxed os.Root.FS()
 
 		cacheMu sync.Mutex                         // guards cache
 		cache   map[DataFileName]dataDirCacheEntry // last decoded value per file
@@ -30,11 +27,11 @@ type (
 	}
 )
 
-// NewDataDir returns a DataDir that reads from root, which must be an already opened sandboxed directory
-// (see [os.OpenRoot]). The caller owns root's lifetime.
-func NewDataDir(root *os.Root) *DataDir {
+// NewDataDir returns a DataDir that reads files from fsys. For a sandboxed data directory pass an [os.Root]'s FS,
+// e.g. NewDataDir(root.FS()); the caller owns the underlying root's lifetime.
+func NewDataDir(fsys fs.FS) *DataDir {
 	return &DataDir{
-		root:  root,
+		fsys:  fsys,
 		cache: make(map[DataFileName]dataDirCacheEntry),
 	}
 }
@@ -47,12 +44,12 @@ func NewDataDir(root *os.Root) *DataDir {
 // The returned value shares backing storage (maps/slices) with the cache and must be treated as READ-ONLY;
 // mutating it corrupts the cached copy.
 func (dd *DataDir) ReadFile[T any](fName DataFileName) (zero T, _ bool /* from cache? */, _ error) {
-	stat, statErr := dd.root.Stat(string(fName))
+	info, statErr := fs.Stat(dd.fsys, string(fName))
 	if statErr != nil {
 		return zero, false, statErr
 	}
 
-	size, mtime := stat.Size(), stat.ModTime().UnixMilli()
+	size, mtime := info.Size(), info.ModTime().UnixMilli()
 
 	{ // fast path - if the file size and mtime are unchanged, return the cached data
 		dd.cacheMu.Lock()
@@ -73,7 +70,7 @@ func (dd *DataDir) ReadFile[T any](fName DataFileName) (zero T, _ bool /* from c
 	}
 
 	// slow path - read the file and update the cache
-	f, fErr := dd.root.Open(string(fName))
+	f, fErr := dd.fsys.Open(string(fName))
 	if fErr != nil {
 		return zero, false, fErr
 	}

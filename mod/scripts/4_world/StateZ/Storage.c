@@ -303,10 +303,10 @@ class StateZ_Storage
 		snap.weather.temperature_base = s_TemperatureBase;
 		snap.weather.wind_speed = s_WindSpeed;
 		snap.weather.wind_direction = s_WindDirection;
-		snap.weather.rain = s_Rain;
-		snap.weather.snow = s_Snow;
-		snap.weather.fog = s_Fog;
-		snap.weather.clouds = s_Clouds;
+		snap.weather.rain = StateZ_Num.Round4(s_Rain);
+		snap.weather.snow = StateZ_Num.Round4(s_Snow);
+		snap.weather.fog = StateZ_Num.Round4(s_Fog);
+		snap.weather.clouds = StateZ_Num.Round4(s_Clouds);
 
 		snap.food.total = s_Food;
 		snap.food.other = s_FoodOther;

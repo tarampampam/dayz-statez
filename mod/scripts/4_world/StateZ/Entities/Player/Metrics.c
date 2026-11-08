@@ -191,25 +191,25 @@ class StateZ_PlayerMetrics
 		snap.character_type = m_CharacterType;
 
 		snap.is_loaded = m_IsLoaded;
-		snap.health = m_Health;
-		snap.blood = m_Blood;
-		snap.shock = m_Shock;
-		snap.energy = m_Energy;
-		snap.water = m_Water;
-		snap.toxicity = m_Toxicity;
+		snap.health = StateZ_Num.Round4(m_Health);
+		snap.blood = StateZ_Num.Round4(m_Blood);
+		snap.shock = StateZ_Num.Round4(m_Shock);
+		snap.energy = StateZ_Num.Round4(m_Energy);
+		snap.water = StateZ_Num.Round4(m_Water);
+		snap.toxicity = StateZ_Num.Round4(m_Toxicity);
 		snap.temperature_celsius = m_TempC;
 		snap.weight_grams = m_Weight;
-		snap.wetness = m_Wetness;
+		snap.wetness = StateZ_Num.Round4(m_Wetness);
 		snap.lifetime_seconds = m_LifeSeconds;
 
-		snap.pos_x = m_PosX;
-		snap.pos_y = m_PosZ;
-		snap.pos_alt = m_PosY;
-		snap.pos_angle = m_Yaw;
+		snap.pos_x = StateZ_Num.Round2(m_PosX);
+		snap.pos_y = StateZ_Num.Round2(m_PosZ);
+		snap.pos_alt = StateZ_Num.Round2(m_PosY);
+		snap.pos_angle = StateZ_Num.Round2(m_Yaw);
 
 		snap.ping_min = m_PingMin;
 		snap.ping_max = m_PingMax;
-		snap.throttle = m_Throttle;
+		snap.throttle = StateZ_Num.Round4(m_Throttle);
 
 		snap.agents_active = m_AgentsCount;
 		snap.bleeding_sources = m_BleedingSources;

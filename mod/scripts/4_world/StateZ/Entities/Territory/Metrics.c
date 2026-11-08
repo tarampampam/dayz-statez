@@ -56,10 +56,10 @@ class StateZ_TerritoryMetrics
 		if (!snap)
 			return;
 
-		snap.pos_x = m_PosX;
-		snap.pos_y = m_PosZ;
-		snap.lifetime_fraction = m_LifetimeFraction;
-		snap.refresher_radius = m_RefresherRadius;
+		snap.pos_x = StateZ_Num.Round2(m_PosX);
+		snap.pos_y = StateZ_Num.Round2(m_PosZ);
+		snap.lifetime_fraction = StateZ_Num.Round4(m_LifetimeFraction);
+		snap.refresher_radius = StateZ_Num.Round2(m_RefresherRadius);
 	}
 }
 #endif

@@ -65,9 +65,9 @@ class StateZ_EffectAreaMetrics
 
 		snap.type = m_Type;
 		snap.class_name = m_ClassName;
-		snap.pos_x = m_PosX;
-		snap.pos_y = m_PosZ;
-		snap.radius = m_Radius;
+		snap.pos_x = StateZ_Num.Round2(m_PosX);
+		snap.pos_y = StateZ_Num.Round2(m_PosZ);
+		snap.radius = StateZ_Num.Round2(m_Radius);
 		snap.insiders = m_Insiders;
 	}
 }

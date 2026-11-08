@@ -124,16 +124,16 @@ class StateZ_TransportMetrics
 		snap.vehicle_type = m_VehicleType;
 		snap.hash = m_Hash;
 
-		snap.health = m_Health;
+		snap.health = StateZ_Num.Round4(m_Health);
 		snap.crew_occupied = m_Passengers;
 		snap.speed_ms = m_SpeedMS;
 		snap.engine_on = m_EngineOn;
-		snap.fuel_fraction = m_FuelFraction;
+		snap.fuel_fraction = StateZ_Num.Round4(m_FuelFraction);
 
-		snap.pos_x = m_PosX;
-		snap.pos_y = m_PosZ;
-		snap.pos_alt = m_PosY;
-		snap.pos_angle = m_Yaw;
+		snap.pos_x = StateZ_Num.Round2(m_PosX);
+		snap.pos_y = StateZ_Num.Round2(m_PosZ);
+		snap.pos_alt = StateZ_Num.Round2(m_PosY);
+		snap.pos_angle = StateZ_Num.Round2(m_Yaw);
 	}
 
 	/**

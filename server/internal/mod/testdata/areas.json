@@ -1,0 +1,4 @@
+[
+  {"type": "STATIC", "class_name": "ContaminatedArea_Static", "pos_x": 13917.0, "pos_y": 11178.0, "radius": 75.0, "insiders": 0},
+  {"type": "DYNAMIC", "class_name": "ContaminatedArea_Dynamic", "pos_x": 2080.0, "pos_y": 3500.0, "radius": 100.0, "insiders": 2}
+]

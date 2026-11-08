@@ -120,7 +120,8 @@ type (
 		GUID string `json:"guid"`
 		// Name is the player display name.
 		Name string `json:"name"`
-		// BloodType is the human-readable blood type incl. Rh sign, e.g. "A+", "O-".
+		// BloodType is the human-readable blood type incl. Rh sign, one of:
+		// "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-".
 		BloodType string `json:"blood_type"`
 		// Gender is "male" or "female".
 		Gender string `json:"gender"`

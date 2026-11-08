@@ -19,17 +19,17 @@ type (
 		cache   map[DataFileName]dataDirCacheEntry // last decoded value per file
 	}
 
-	// dataDirCacheEntry is one file's last successfully decoded value together
-	// with the size and mtime it was decoded from (used to detect staleness).
+	// dataDirCacheEntry is one file's last successfully decoded value together with the size and mtime it was decoded
+	// from (used to detect staleness).
 	dataDirCacheEntry struct {
 		mtime, size int64 // file mtime (ms) and size the data was decoded from
 		data        any   // decoded value; its concrete type is the T of the producing ReadFile call
 	}
 )
 
-// NewDataDir returns a DataDir that reads files from fsys. For a sandboxed data directory pass an [os.Root]'s FS,
-// e.g. NewDataDir(root.FS()); the caller owns the underlying root's lifetime.
-func NewDataDir(fsys fs.FS) *DataDir {
+// OpenDataDir returns a DataDir that reads files from fsys. For a sandboxed data directory pass an [os.Root]'s FS,
+// e.g. OpenDataDir(root.FS()); the caller owns the underlying root's lifetime.
+func OpenDataDir(fsys fs.FS) *DataDir {
 	return &DataDir{
 		fsys:  fsys,
 		cache: make(map[DataFileName]dataDirCacheEntry),

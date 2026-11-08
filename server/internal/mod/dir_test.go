@@ -50,7 +50,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
 
-				dd := mod.NewDataDir(fstest.MapFS{string(file): mapFile(tc.json, time.Unix(1, 0))})
+				dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(tc.json, time.Unix(1, 0))})
 
 				got, cached, err := dd.ReadFile[sample](file)
 				assert.NoError(t, err)
@@ -69,7 +69,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 		t.Parallel()
 
 		mfs := fstest.MapFS{string(file): mapFile(`{"n":1}`, time.Unix(1, 0))}
-		dd := mod.NewDataDir(mfs)
+		dd := mod.OpenDataDir(mfs)
 
 		_, c1, _ := dd.ReadFile[sample](file)
 		assert.False(t, c1)
@@ -85,7 +85,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 		t.Parallel()
 
 		mfs := fstest.MapFS{string(file): mapFile(`{"set":{"a":1,"b":2}}`, time.Unix(1, 0))}
-		dd := mod.NewDataDir(mfs)
+		dd := mod.OpenDataDir(mfs)
 
 		first, _, err1 := dd.ReadFile[sample](file)
 		assert.NoError(t, err1)
@@ -102,7 +102,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 	t.Run("missing file", func(t *testing.T) {
 		t.Parallel()
 
-		dd := mod.NewDataDir(fstest.MapFS{})
+		dd := mod.OpenDataDir(fstest.MapFS{})
 
 		_, cached, err := dd.ReadFile[sample](file)
 		assert.Error(t, err)
@@ -113,7 +113,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 	t.Run("invalid json", func(t *testing.T) {
 		t.Parallel()
 
-		dd := mod.NewDataDir(fstest.MapFS{string(file): mapFile(`{not json`, time.Unix(1, 0))})
+		dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(`{not json`, time.Unix(1, 0))})
 
 		_, cached, err := dd.ReadFile[sample](file)
 		assert.Error(t, err)
@@ -123,7 +123,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 	t.Run("type mismatch against a cached file", func(t *testing.T) {
 		t.Parallel()
 
-		dd := mod.NewDataDir(fstest.MapFS{string(file): mapFile(`{"n":1}`, time.Unix(1, 0))})
+		dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(`{"n":1}`, time.Unix(1, 0))})
 
 		_, _, err1 := dd.ReadFile[sample](file) // caches as sample
 		assert.NoError(t, err1)
@@ -136,7 +136,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 	t.Run("concurrent reads are safe", func(t *testing.T) {
 		t.Parallel()
 
-		dd := mod.NewDataDir(fstest.MapFS{string(file): mapFile(`{"n":9}`, time.Unix(1, 0))})
+		dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(`{"n":9}`, time.Unix(1, 0))})
 
 		const n = 50
 

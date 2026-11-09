@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"sync"
 
+	"server/internal/httpserver/handlers"
 	"server/internal/mod"
 )
 
@@ -54,31 +55,31 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 
-		type response struct {
-			Animals     *mod.Animals     `json:"animals,omitempty"`
-			Areas       *mod.Areas       `json:"areas,omitempty"`
-			Events      *mod.Events      `json:"events,omitempty"`
-			Hits        *mod.Hits        `json:"hits,omitempty"`
-			Players     *mod.Players     `json:"players,omitempty"`
-			Territories *mod.Territories `json:"territories,omitempty"`
-			Vehicles    *mod.Vehicles    `json:"vehicles,omitempty"`
-			Weapons     *mod.Weapons     `json:"weapons,omitempty"`
-			World       *mod.World       `json:"world,omitempty"`
-			Zombies     *mod.Zombies     `json:"zombies,omitempty"`
-		}
+		response := struct {
+			Animals     handlers.Animals     `json:"animals"`
+			Areas       handlers.Areas       `json:"areas"`
+			Events      handlers.Events      `json:"events"`
+			Hits        handlers.Hits        `json:"hits"`
+			Players     handlers.Players     `json:"players"`
+			Territories handlers.Territories `json:"territories"`
+			Vehicles    handlers.Vehicles    `json:"vehicles"`
+			Weapons     handlers.Weapons     `json:"weapons"`
+			World       handlers.World       `json:"world"`
+			Zombies     handlers.Zombies     `json:"zombies"`
+		}{}
 
-		if err := json.NewEncoder(w).Encode(response{
-			Animals:     animals,
-			Areas:       areas,
-			Events:      events,
-			Hits:        hits,
-			Players:     players,
-			Territories: territories,
-			Vehicles:    vehicles,
-			Weapons:     weapons,
-			World:       world,
-			Zombies:     zombies,
-		}); err != nil {
+		response.Animals.FillFrom(animals)
+		response.Areas.FillFrom(areas)
+		response.Events.FillFrom(events)
+		response.Hits.FillFrom(hits)
+		response.Players.FillFrom(players)
+		response.Territories.FillFrom(territories)
+		response.Vehicles.FillFrom(vehicles)
+		response.Weapons.FillFrom(weapons)
+		response.World.FillFrom(world)
+		response.Zombies.FillFrom(zombies)
+
+		if err := json.NewEncoder(w).Encode(response); err != nil {
 			log.LogAttrs(ctx, slog.LevelError, "failed to encode response", slog.String("error", err.Error()))
 		}
 	}

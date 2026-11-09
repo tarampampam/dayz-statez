@@ -13,5 +13,5 @@ indent_size = 2
 [*.c]
 indent_style = tab
 
-[Makefile]
+[{Makefile,go.mod,go.sum,*.go}]
 indent_style = tab

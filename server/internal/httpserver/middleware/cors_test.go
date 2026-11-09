@@ -9,7 +9,7 @@ import (
 	"server/internal/testutil/assert"
 )
 
-func TestCORSPreflight(t *testing.T) {
+func TestCORS(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
@@ -21,26 +21,27 @@ func TestCORSPreflight(t *testing.T) {
 	}{
 		"browser preflight - method only": {
 			giveMethod:  http.MethodOptions,
-			giveHeaders: map[string]string{"Access-Control-Request-Method": "POST"},
+			giveHeaders: map[string]string{"Access-Control-Request-Method": "GET"},
 			wantStatus:  http.StatusNoContent,
 			wantHeaders: map[string]string{
-				"Access-Control-Allow-Origin":  "*",
-				"Access-Control-Allow-Methods": "POST",
-				"Access-Control-Max-Age":       "86400",
+				"Access-Control-Allow-Origin":   "*",
+				"Access-Control-Allow-Methods":  "GET",
+				"Access-Control-Max-Age":        "86400",
+				"Access-Control-Expose-Headers": "*",
 			},
 			wantNext: false,
 		},
 		"browser preflight - method and headers": {
 			giveMethod: http.MethodOptions,
 			giveHeaders: map[string]string{
-				"Access-Control-Request-Method":  "POST",
-				"Access-Control-Request-Headers": "Content-Type, Authorization",
+				"Access-Control-Request-Method":  "GET",
+				"Access-Control-Request-Headers": "Authorization",
 			},
 			wantStatus: http.StatusNoContent,
 			wantHeaders: map[string]string{
 				"Access-Control-Allow-Origin":  "*",
-				"Access-Control-Allow-Methods": "POST",
-				"Access-Control-Allow-Headers": "Content-Type, Authorization",
+				"Access-Control-Allow-Methods": "GET",
+				"Access-Control-Allow-Headers": "Authorization",
 				"Access-Control-Max-Age":       "86400",
 			},
 			wantNext: false,
@@ -49,19 +50,18 @@ func TestCORSPreflight(t *testing.T) {
 			giveMethod:  http.MethodOptions,
 			giveHeaders: map[string]string{},
 			wantStatus:  http.StatusOK,
+			wantHeaders: map[string]string{"Access-Control-Allow-Origin": "*"},
 			wantNext:    true,
 		},
-		"GET passes through": {
+		"actual GET carries CORS headers and passes through": {
 			giveMethod:  http.MethodGet,
 			giveHeaders: map[string]string{},
 			wantStatus:  http.StatusOK,
-			wantNext:    true,
-		},
-		"POST passes through": {
-			giveMethod:  http.MethodPost,
-			giveHeaders: map[string]string{},
-			wantStatus:  http.StatusOK,
-			wantNext:    true,
+			wantHeaders: map[string]string{
+				"Access-Control-Allow-Origin":   "*",
+				"Access-Control-Expose-Headers": "*",
+			},
+			wantNext: true,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -69,13 +69,13 @@ func TestCORSPreflight(t *testing.T) {
 
 			var nextCalled bool
 
-			handler := middleware.CORSPreflight(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			handler := middleware.CORS(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				nextCalled = true
 
 				w.WriteHeader(http.StatusOK)
 			}))
 
-			r := httptest.NewRequest(tt.giveMethod, "/", nil)
+			r := httptest.NewRequest(tt.giveMethod, "/", http.NoBody)
 			for k, v := range tt.giveHeaders {
 				r.Header.Set(k, v)
 			}

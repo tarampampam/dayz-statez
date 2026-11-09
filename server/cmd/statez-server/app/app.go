@@ -26,11 +26,14 @@ func (a *App) Run(ctx context.Context, args []string) error {
 
 		hostPort   string
 		modDataDir string
+		apiToken   string
 	)
 
 	// attach flags to the flag set
 	flags.StringVar(&hostPort, "listen", "0.0.0.0:8080", "Host and port to run the server on")
 	flags.StringVar(&modDataDir, "mod-data-dir", "", "Path to the directory where the StateZ mod stores its data")
+	flags.StringVar(&apiToken, "api-token", "",
+		"Bearer token required to access the data endpoints (empty value disables authentication)")
 
 	// parse the command-line arguments
 	if err := flags.Parse(args); err != nil {
@@ -65,5 +68,5 @@ func (a *App) Run(ctx context.Context, args []string) error {
 	log := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	dd := mod.OpenDataDir(modData.FS())
 
-	return httpserver.New(httpserver.NewHandler(log, dd)).Serve(ctx, ln)
+	return httpserver.New(httpserver.NewHandler(log, dd, apiToken)).Serve(ctx, ln)
 }

@@ -5,13 +5,17 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"server/internal/httpserver/handlers/data_world"
 	"server/internal/mod"
 	"server/internal/testutil/assert"
 )
+
+var testMtime = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
 
 func TestNew_ok(t *testing.T) {
 	t.Parallel()
@@ -20,7 +24,7 @@ func TestNew_ok(t *testing.T) {
 	fsys := fstest.MapFS{"world.json": {Data: []byte(
 		`{"world":"chernarusplus","uptime_seconds":205.5,"hour":8,"minute":33,"time_of_day":1,` +
 			`"weather":{"temperature":9.481267}}`,
-	)}}
+	), ModTime: testMtime}}
 
 	h := data_world.New(mod.OpenDataDir(fsys), slog.New(slog.DiscardHandler))
 
@@ -50,6 +54,14 @@ func TestNew_ok(t *testing.T) {
 	assert.Equal(t, 33, got.Time.Minute)
 	assert.Equal(t, "day", got.Time.TimeOfDay)
 	assert.Equal(t, 9.4813, got.Weather.Temperature)
+
+	// freshness + cache headers on a fresh (non-cached) read
+	assert.Equal(t, "false", rec.Header().Get("X-Cache-Hit"))
+	assert.Equal(t, testMtime.Format(http.TimeFormat), rec.Header().Get("Last-Modified"))
+
+	age, ageErr := strconv.Atoi(rec.Header().Get("X-Data-Age-Seconds"))
+	assert.NoError(t, ageErr)
+	assert.True(t, age >= 0)
 }
 
 func TestNew_missingFile(t *testing.T) {

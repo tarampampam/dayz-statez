@@ -5,24 +5,28 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"server/internal/httpserver/handlers/data_players"
 	"server/internal/mod"
 	"server/internal/testutil/assert"
 )
 
+var testMtime = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
+
 func TestNew(t *testing.T) {
 	t.Parallel()
 
 	for name, tt := range map[string]struct {
-		fsys     fs.FS
+		giveJSON string // data file content; empty means the file is absent
 		wantCode int
-		wantBody string // expected JSON body; empty = not checked
+		wantBody string
 	}{
 		"ok": {
-			fsys: fstest.MapFS{"players.json": {Data: []byte(`[{
+			giveJSON: `[{
 				"steam_id":"76561198000000001","guid":"abc","name":"tester",
 				"blood_type":"A+","gender":"female","character_type":"Judy",
 				"is_loaded":1,"is_unconscious":1,"is_restrained":0,"godmode":0,"immunity_boosted":0,
@@ -31,7 +35,7 @@ func TestNew(t *testing.T) {
 				"pos_x":13377.5,"pos_y":6292.14,"pos_alt":7.17,"pos_angle":-121.33,
 				"ping_min":2,"ping_max":8,"throttle":0.123456,"agents_active":1,"bleeding_sources":0,
 				"stat_playtime_seconds":5000,"stat_distance_meters":693.69,"stat_infected_killed":4
-			}]`)}},
+			}]`,
 			wantCode: http.StatusOK,
 			wantBody: `[{
 				"id":{"steam_id":"76561198000000001","guid":"abc","name":"tester"},
@@ -45,19 +49,23 @@ func TestNew(t *testing.T) {
 			}]`,
 		},
 		"empty payload": {
-			fsys:     fstest.MapFS{"players.json": {Data: []byte(`[]`)}},
+			giveJSON: `[]`,
 			wantCode: http.StatusOK,
 			wantBody: `[]`,
 		},
 		"missing file": {
-			fsys:     fstest.MapFS{},
 			wantCode: http.StatusNoContent,
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			h := data_players.New(mod.OpenDataDir(tt.fsys), slog.New(slog.DiscardHandler))
+			var fsys fs.FS = fstest.MapFS{}
+			if tt.giveJSON != "" {
+				fsys = fstest.MapFS{"players.json": {Data: []byte(tt.giveJSON), ModTime: testMtime}}
+			}
+
+			h := data_players.New(mod.OpenDataDir(fsys), slog.New(slog.DiscardHandler))
 
 			rec := httptest.NewRecorder()
 			h(rec, httptest.NewRequest(http.MethodGet, "/players", http.NoBody))
@@ -65,9 +73,19 @@ func TestNew(t *testing.T) {
 			assert.Equal(t, tt.wantCode, rec.Code)
 			assert.Equal(t, "application/json", rec.Header().Get("Content-Type"))
 
-			if tt.wantBody != "" {
-				assert.JSONEq(t, tt.wantBody, rec.Body.String())
+			if tt.wantCode != http.StatusOK {
+				return
 			}
+
+			assert.JSONEq(t, tt.wantBody, rec.Body.String())
+
+			// freshness + cache headers on a fresh (non-cached) read
+			assert.Equal(t, "false", rec.Header().Get("X-Cache-Hit"))
+			assert.Equal(t, testMtime.Format(http.TimeFormat), rec.Header().Get("Last-Modified"))
+
+			age, ageErr := strconv.Atoi(rec.Header().Get("X-Data-Age-Seconds"))
+			assert.NoError(t, ageErr)
+			assert.True(t, age >= 0)
 		})
 	}
 }

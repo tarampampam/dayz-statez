@@ -52,14 +52,16 @@ func TestDataDir_ReadFile(t *testing.T) {
 
 				dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(tc.json, time.Unix(1, 0))})
 
-				got, cached, err := dd.ReadFile[sample](file)
+				got, cached, mtime, err := dd.ReadFile[sample](file)
 				assert.NoError(t, err)
-				assert.False(t, cached) // first read is always fresh
+				assert.False(t, cached)                      // first read is always fresh
+				assert.True(t, mtime.Equal(time.Unix(1, 0))) // reported modtime == file mtime
 				assert.DeepEqual(t, tc.want, *got)
 
-				got, cached, err = dd.ReadFile[sample](file)
+				got, cached, mtime, err = dd.ReadFile[sample](file)
 				assert.NoError(t, err)
-				assert.True(t, cached) // second read is cached
+				assert.True(t, cached)                       // second read is cached
+				assert.True(t, mtime.Equal(time.Unix(1, 0))) // cache hit still reports the modtime
 				assert.DeepEqual(t, tc.want, *got)
 			})
 		}
@@ -71,12 +73,12 @@ func TestDataDir_ReadFile(t *testing.T) {
 		mfs := fstest.MapFS{string(file): mapFile(`{"n":1}`, time.Unix(1, 0))}
 		dd := mod.OpenDataDir(mfs)
 
-		_, c1, _ := dd.ReadFile[sample](file)
+		_, c1, _, _ := dd.ReadFile[sample](file)
 		assert.False(t, c1)
 
 		mfs[string(file)].ModTime = time.Unix(2, 0) // same bytes, newer mtime
 
-		_, c2, err := dd.ReadFile[sample](file)
+		_, c2, _, err := dd.ReadFile[sample](file)
 		assert.NoError(t, err)
 		assert.False(t, c2) // mtime differs -> fresh read, not cache
 	})
@@ -87,13 +89,13 @@ func TestDataDir_ReadFile(t *testing.T) {
 		mfs := fstest.MapFS{string(file): mapFile(`{"set":{"a":1,"b":2}}`, time.Unix(1, 0))}
 		dd := mod.OpenDataDir(mfs)
 
-		first, _, err1 := dd.ReadFile[sample](file)
+		first, _, _, err1 := dd.ReadFile[sample](file)
 		assert.NoError(t, err1)
 		assert.DeepEqual(t, map[string]int{"a": 1, "b": 2}, first.Set)
 
 		mfs[string(file)] = mapFile(`{"set":{"a":5}}`, time.Unix(2, 0)) // "b" removed
 
-		second, cached, err2 := dd.ReadFile[sample](file)
+		second, cached, _, err2 := dd.ReadFile[sample](file)
 		assert.NoError(t, err2)
 		assert.False(t, cached)
 		assert.DeepEqual(t, map[string]int{"a": 5}, second.Set) // decoded fresh: no stale "b"
@@ -104,7 +106,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 
 		dd := mod.OpenDataDir(fstest.MapFS{})
 
-		data, cached, err := dd.ReadFile[sample](file)
+		data, cached, _, err := dd.ReadFile[sample](file)
 		assert.Nil(t, data)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
@@ -116,7 +118,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 
 		dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(`{not json`, time.Unix(1, 0))})
 
-		data, cached, err := dd.ReadFile[sample](file)
+		data, cached, _, err := dd.ReadFile[sample](file)
 		assert.Nil(t, data)
 		assert.Error(t, err)
 		assert.False(t, cached)
@@ -127,10 +129,10 @@ func TestDataDir_ReadFile(t *testing.T) {
 
 		dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(`{"n":1}`, time.Unix(1, 0))})
 
-		_, _, err1 := dd.ReadFile[sample](file) // caches as sample
+		_, _, _, err1 := dd.ReadFile[sample](file) // caches as sample
 		assert.NoError(t, err1)
 
-		_, cached, err2 := dd.ReadFile[other](file) // same file, different T
+		_, cached, _, err2 := dd.ReadFile[other](file) // same file, different T
 		assert.False(t, cached)
 		assert.ErrorContains(t, err2, "type mismatch")
 	})
@@ -153,7 +155,7 @@ func TestDataDir_ReadFile(t *testing.T) {
 			go func(i int) {
 				defer wg.Done()
 
-				_, _, errs[i] = dd.ReadFile[sample](file)
+				_, _, _, errs[i] = dd.ReadFile[sample](file)
 			}(i)
 		}
 

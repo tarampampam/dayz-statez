@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"strconv"
+	"time"
 
 	"server/internal/mod"
 	"server/pkg"
@@ -19,7 +21,7 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		data, cacheHit, dataErr := dd.ReadFile[mod.Animals](fName)
+		data, cacheHit, modTime, dataErr := dd.ReadFile[mod.Animals](fName)
 		if dataErr != nil {
 			if errors.Is(dataErr, fs.ErrNotExist) {
 				w.WriteHeader(http.StatusNoContent)
@@ -45,6 +47,9 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 
 			return "false"
 		}())
+
+		w.Header().Set("Last-Modified", modTime.UTC().Format(http.TimeFormat))
+		w.Header().Set("X-Data-Age-Seconds", strconv.Itoa(max(0, int(time.Since(modTime).Seconds()))))
 
 		var resp pkg.Animals
 		fill(data, &resp)

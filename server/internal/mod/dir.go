@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/fs"
 	"sync"
+	"time"
 )
 
 type (
@@ -39,17 +40,19 @@ func OpenDataDir(fsys fs.FS) *DataDir {
 // ReadFile reads, decodes and caches the JSON file fName as type T.
 //
 // The bool return reports whether the result came from cache (the file was unchanged since the last read) rather
-// than a fresh disk read.
+// than a fresh disk read. The returned time is the file's modification time (when the mod last wrote it), usable
+// as a data-freshness signal.
 //
 // The returned value shares backing storage (maps/slices) with the cache and must be treated as READ-ONLY;
 // mutating it corrupts the cached copy.
-func (dd *DataDir) ReadFile[T any](fName DataFileName) (*T, bool /* from cache? */, error) {
+func (dd *DataDir) ReadFile[T any](fName DataFileName) (*T, bool /* from cache? */, time.Time /* mod time */, error) {
 	info, statErr := fs.Stat(dd.fsys, string(fName))
 	if statErr != nil {
-		return nil, false, statErr
+		return nil, false, time.Time{}, statErr
 	}
 
-	size, mtime := info.Size(), info.ModTime().UnixMilli()
+	modTime := info.ModTime()
+	size, mtime := info.Size(), modTime.UnixMilli()
 
 	{ // fast path - if the file size and mtime are unchanged, return the cached data
 		dd.cacheMu.Lock()
@@ -58,12 +61,12 @@ func (dd *DataDir) ReadFile[T any](fName DataFileName) (*T, bool /* from cache? 
 			if data, ok := entry.data.(*T); ok {
 				dd.cacheMu.Unlock()
 
-				return data, true, nil
+				return data, true, modTime, nil
 			}
 
 			dd.cacheMu.Unlock()
 
-			return nil, false, errors.New("cached data type mismatch for " + string(fName))
+			return nil, false, time.Time{}, errors.New("cached data type mismatch for " + string(fName))
 		}
 
 		dd.cacheMu.Unlock()
@@ -72,13 +75,13 @@ func (dd *DataDir) ReadFile[T any](fName DataFileName) (*T, bool /* from cache? 
 	// slow path - read the file and update the cache
 	f, fErr := dd.fsys.Open(string(fName))
 	if fErr != nil {
-		return nil, false, fErr
+		return nil, false, time.Time{}, fErr
 	}
 	defer func() { _ = f.Close() }()
 
 	var data T
 	if err := json.NewDecoder(f).Decode(&data); err != nil {
-		return nil, false, err
+		return nil, false, time.Time{}, err
 	}
 
 	// commit only after a successful decoding
@@ -86,5 +89,5 @@ func (dd *DataDir) ReadFile[T any](fName DataFileName) (*T, bool /* from cache? 
 	dd.cache[fName] = dataDirCacheEntry{mtime: mtime, size: size, data: &data}
 	dd.cacheMu.Unlock()
 
-	return &data, false, f.Close() // it's better to return the error from Close() than to silently ignore it
+	return &data, false, modTime, f.Close() // it's better to return the error from Close() than to silently ignore it
 }

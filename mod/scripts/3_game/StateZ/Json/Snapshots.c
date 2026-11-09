@@ -84,13 +84,13 @@ class StateZ_WorldSnapshot
 	}
 
 	// metadata
-	int ts;
 	string world;
 
 	// timing
 	float uptime_seconds;
-	int game_time_unix;
-	int time_of_day; // 0=dawn, 1=day, 2=dusk, 3=night
+	int hour;          // in-game hour, 0..23
+	int minute;        // in-game minute, 0..59
+	int time_of_day;   // 0=dawn, 1=day, 2=dusk, 3=night
 
 	// populations
 	int players_online;

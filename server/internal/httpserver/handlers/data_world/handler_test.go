@@ -16,10 +16,9 @@ import (
 func TestNew_ok(t *testing.T) {
 	t.Parallel()
 
-	// game_time_unix 496053180 -> intra-day 30780s -> 08:33; time_of_day 1 -> "day";
-	// uptime 205.5 -> int 205; temperature 9.481267 -> round4 9.4813.
+	// time_of_day 1 -> "day"; uptime 205.5 -> int 205; temperature 9.481267 -> round4 9.4813.
 	fsys := fstest.MapFS{"world.json": {Data: []byte(
-		`{"world":"chernarusplus","uptime_seconds":205.5,"game_time_unix":496053180,"time_of_day":1,` +
+		`{"world":"chernarusplus","uptime_seconds":205.5,"hour":8,"minute":33,"time_of_day":1,` +
 			`"weather":{"temperature":9.481267}}`,
 	)}}
 

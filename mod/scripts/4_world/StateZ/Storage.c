@@ -24,7 +24,8 @@ class StateZ_Storage
 
 	// Time
 	static float s_ServerUptimeSec;
-	static int s_TimeUnixSec;
+	static int s_Hour;
+	static int s_Minute;
 	static int s_TimeOfDay;
 
 	// World totals
@@ -168,7 +169,11 @@ class StateZ_Storage
 
 		// Time
 		s_ServerUptimeSec = g_Game.GetTickTime();
-		s_TimeUnixSec = StateZ_Time.GameEpochSeconds();
+
+		int year, month, day, hour, minute;
+		g_Game.GetWorld().GetDate(year, month, day, hour, minute);
+		s_Hour = hour;
+		s_Minute = minute;
 
 		int phase;
 		switch (g_Game.GetMission().GetWorldData().GetDaytime()) {
@@ -226,7 +231,6 @@ class StateZ_Storage
 		if (!snap)
 			return;
 
-		snap.ts = StateZ_Time.GameEpochSeconds();
 		string wn;
 		g_Game.GetWorldName(wn);
 		wn.TrimInPlace();
@@ -234,7 +238,8 @@ class StateZ_Storage
 		snap.world = wn;
 
 		snap.uptime_seconds = s_ServerUptimeSec;
-		snap.game_time_unix = s_TimeUnixSec;
+		snap.hour = s_Hour;
+		snap.minute = s_Minute;
 		snap.time_of_day = s_TimeOfDay;
 
 		snap.fps.current = s_FPS;

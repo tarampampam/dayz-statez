@@ -70,10 +70,8 @@ func fill(src *mod.World, dst *pkg.World) {
 	dst.MapName = src.World
 	dst.UptimeSeconds = int(src.UptimeSeconds)
 
-	// in-game clock derived from the artificial in-game epoch; its intra-day part (% 86400) is exact
-	sod := ((src.GameTimeUnix % 86400) + 86400) % 86400
-	dst.Time.Hour = sod / 3600
-	dst.Time.Minute = (sod % 3600) / 60
+	dst.Time.Hour = src.Hour
+	dst.Time.Minute = src.Minute
 
 	switch src.TimeOfDay { // engine daytime phase (0..3) -> human-readable string
 	case 0:

@@ -293,17 +293,15 @@ type Weapons struct {
 type (
 	// World is the DTO for WorldFileName file. It contains a single snapshot of the world state at the collection time.
 	World struct {
-		// TS is the snapshot timestamp in Unix-style seconds derived from the
-		// in-game world date/time (minute precision), NOT the real wall clock.
-		TS int `json:"ts"`
 		// World is the lowercased world/map name, e.g. "chernarusplus", "enoch".
 		World string `json:"world"`
 
 		// UptimeSeconds is server process uptime in seconds (engine tick time).
 		UptimeSeconds float64 `json:"uptime_seconds"`
-		// GameTimeUnix is the in-game world time as Unix-style seconds (same basis
-		// as TS, sampled at collection time).
-		GameTimeUnix int `json:"game_time_unix"`
+		// Hour is the in-game hour, 0..23 (from the engine world date/time).
+		Hour int `json:"hour"`
+		// Minute is the in-game minute, 0..59 (from the engine world date/time).
+		Minute int `json:"minute"`
 		// TimeOfDay is the daytime phase: 0=dawn, 1=day, 2=dusk, 3=night.
 		TimeOfDay int `json:"time_of_day"`
 

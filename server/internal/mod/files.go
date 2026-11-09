@@ -14,7 +14,7 @@ const (
 	HitsFileName        DataFileName = "hits.json"        // ~30 bytes on empty server
 	PlayersFileName     DataFileName = "players.json"     // ~1 KiB for 1 player
 	TerritoriesFileName DataFileName = "territories.json" // 2 bytes on empty server
-	VehiclesFileName    DataFileName = "vehicles.json"    // ~17 KiB on empty server
+	VehiclesFileName    DataFileName = "vehicles.json"    // ~40 KiB on empty server (incl. per-part health)
 	WeaponsFileName     DataFileName = "weapons.json"     // ~600 bytes on empty server
 	WorldFileName       DataFileName = "world.json"       // ~1.5 KiB on empty server
 	ZombiesFileName     DataFileName = "zombies.json"     // ~180 bytes on empty server
@@ -224,22 +224,53 @@ type (
 		// -1 when the persistent ID is unavailable.
 		Hash int `json:"hash"`
 
-		// Health is normalized global health, 0..1.
+		// Health is the normalized global health of the vehicle BODY only (chassis/panels/engine zone), 0..1.
+		// Attached parts carry their own condition in Parts; a fresh-spawned vehicle has a pristine body (1.0) but
+		// randomly-worn parts.
 		Health float64 `json:"health"`
 		// CrewOccupied is the number of occupied crew seats.
 		CrewOccupied int `json:"crew_occupied"`
+		// CrewCapacity is the total number of crew seats (CrewSize()).
+		CrewCapacity int `json:"crew_capacity"`
 		// SpeedMS is the current speed in m/s (small values snapped to 0).
 		SpeedMS float64 `json:"speed_ms"`
+		// RPM is the current engine revolutions per minute (rounded). 0 when the engine is off, and always 0 for
+		// vehicles without an engine RPM model (boats).
+		RPM int `json:"rpm"`
+		// Gear is the currently selected gear index (0 = neutral on most gearboxes); -1 for vehicles without gears
+		// (boats).
+		Gear int `json:"gear"`
 		// EngineOn reports whether the engine is running.
 		EngineOn esBool `json:"engine_on"`
+		// LightsOn reports whether the vehicle lights are on (LightIsOn()).
+		LightsOn esBool `json:"lights_on"`
 		// FuelFraction is tank fill level, 0..1; -1.0 when the vehicle has no fuel system / fuel is not applicable.
 		FuelFraction float64 `json:"fuel_fraction"`
+		// CoolantFraction is the radiator coolant level, 0..1; -1.0 when the vehicle has no radiator (motorbikes,
+		// boats, and other types without a cooling system).
+		CoolantFraction float64 `json:"coolant_fraction"`
+		// CargoItems is the total number of items stored in the vehicle's cargo (trunk + any storage attachments),
+		// excluding the attached parts themselves. 0 for vehicles with no cargo space or an empty cargo.
+		CargoItems int `json:"cargo_items"`
 
 		// PosX/PosY horizontal map plane; PosAlt height (m); PosAngle yaw degrees.
 		PosX     float64 `json:"pos_x"`
 		PosY     float64 `json:"pos_y"`
 		PosAlt   float64 `json:"pos_alt"`
 		PosAngle float64 `json:"pos_angle"`
+
+		// Parts lists the vehicle's attached parts (wheels, doors, battery, radiator, spark plug, headlights, ...),
+		// each with its own health. Empty for vehicles without detachable parts (boats).
+		Parts []VehiclePart `json:"parts"`
+	}
+
+	// VehiclePart is a single attached vehicle part with its own condition.
+	VehiclePart struct {
+		// Name is the part entity class, e.g. "CarBattery", "CarRadiator", "SparkPlug", "Hatchback_02_Wheel",
+		// "Hatchback_02_Door_1_1_Blue".
+		Name string `json:"name"`
+		// Health is the part's normalized health, 0..1.
+		Health float64 `json:"health"`
 	}
 )
 

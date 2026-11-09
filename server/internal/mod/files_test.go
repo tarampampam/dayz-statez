@@ -100,18 +100,33 @@ func TestDTO_Decode(t *testing.T) {
 		"vehicles": {vehiclesJSON, mod.Vehicles{
 			{
 				ClassName: "Hatchback_02_Blue", VehicleType: "Car", Hash: 384863173,
-				Health: 0.948, EngineOn: false /* from "" */, FuelFraction: 0.0377,
+				Health: 0.948, CrewCapacity: 4, Gear: 1,
+				EngineOn: false /* from "" */, LightsOn: false, /* from 0 */
+				FuelFraction: 0.0377, CoolantFraction: 0.0, CargoItems: 3,
 				PosX: 13376.52, PosY: 6292.08, PosAlt: 5.96, PosAngle: 86.73,
+				Parts: []mod.VehiclePart{
+					{Name: "Hatchback_02_Wheel", Health: 0.3555},
+					{Name: "CarRadiator", Health: 0.8096},
+					{Name: "CarBattery", Health: 0.955},
+					{Name: "SparkPlug", Health: 0.241},
+					{Name: "Hatchback_02_Door_1_1_Blue", Health: 0.4346},
+				},
 			},
 			{
 				ClassName: "Boat_01_Black", VehicleType: "Boat", Hash: 346351774,
-				Health: 1.0, CrewOccupied: 2, SpeedMS: 12.5, EngineOn: true /* from 1 */, FuelFraction: 0.3056,
+				Health: 1.0, CrewOccupied: 2, CrewCapacity: 4, SpeedMS: 12.5, Gear: -1,
+				EngineOn: true /* from 1 */, LightsOn: true, /* from 1 */
+				FuelFraction: 0.3056, CoolantFraction: -1.0, // coolant sentinel: no radiator
 				PosX: 13346.0, PosY: 7073.0, PosAlt: 1.0, PosAngle: 132.0,
+				Parts: []mod.VehiclePart{}, // present but empty (boats have no detachable parts)
 			},
 			{
 				ClassName: "Expansion_Mi8", VehicleType: "Helicopter", Hash: -1, // hash sentinel
-				Health: 1.0, EngineOn: false, FuelFraction: -1.0, // fuel sentinel: no fuel system
+				Health: 1.0, CrewCapacity: 8, Gear: -1,
+				EngineOn: false, LightsOn: false,
+				FuelFraction: -1.0, CoolantFraction: -1.0, // fuel/coolant sentinels: no such systems
 				PosX: 5000.0, PosY: 9000.0, PosAlt: 120.0, PosAngle: 270.0,
+				// Parts omitted in JSON -> nil
 			},
 		}},
 

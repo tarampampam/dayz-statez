@@ -2,9 +2,13 @@ package handlers
 
 import (
 	"maps"
+	"math"
 
 	"server/internal/mod"
 )
+
+// round4 rounds f to at most 4 decimal places, trimming needless precision so the API JSON stays compact.
+func round4(f float64) float64 { return math.Round(f*1e4) / 1e4 }
 
 type Animals struct {
 	// ByType maps canonical animal type -> live count, e.g. "wolf", "deer", "cow", "pig", "sheep", "goat", "bear".
@@ -54,9 +58,9 @@ func (dst *Areas) FillFrom(src *mod.Areas) {
 		v, a := &(*src)[i], &(*dst)[i]
 
 		a.Type = v.Type
-		a.Pos.X = v.PosX
-		a.Pos.Y = v.PosY
-		a.Radius = v.Radius
+		a.Pos.X = round4(v.PosX)
+		a.Pos.Y = round4(v.PosY)
+		a.Radius = round4(v.Radius)
 		a.Insiders = v.Insiders
 	}
 }
@@ -230,19 +234,19 @@ func (dst *Players) FillFrom(src *mod.Players) {
 		p.Character.Gender = v.Gender
 		p.Character.BloodType = v.BloodType
 
-		p.Pos.X = v.PosX
-		p.Pos.Y = v.PosY
-		p.Pos.Alt = v.PosAlt
-		p.Pos.Angle = v.PosAngle
+		p.Pos.X = round4(v.PosX)
+		p.Pos.Y = round4(v.PosY)
+		p.Pos.Alt = round4(v.PosAlt)
+		p.Pos.Angle = round4(v.PosAngle)
 
-		p.Vitals.Health = v.Health
-		p.Vitals.Blood = v.Blood
-		p.Vitals.Shock = v.Shock
-		p.Vitals.Energy = v.Energy
-		p.Vitals.Water = v.Water
-		p.Vitals.Toxicity = v.Toxicity
-		p.Vitals.Wetness = v.Wetness
-		p.Vitals.TemperatureCelsius = v.TemperatureCelsius
+		p.Vitals.Health = round4(v.Health)
+		p.Vitals.Blood = round4(v.Blood)
+		p.Vitals.Shock = round4(v.Shock)
+		p.Vitals.Energy = round4(v.Energy)
+		p.Vitals.Water = round4(v.Water)
+		p.Vitals.Toxicity = round4(v.Toxicity)
+		p.Vitals.Wetness = round4(v.Wetness)
+		p.Vitals.TemperatureCelsius = round4(v.TemperatureCelsius)
 
 		p.State.IsLoaded = bool(v.IsLoaded)
 		p.State.IsUnconscious = bool(v.IsUnconscious)
@@ -254,16 +258,16 @@ func (dst *Players) FillFrom(src *mod.Players) {
 
 		p.Network.Ping.Min = v.PingMin
 		p.Network.Ping.Max = v.PingMax
-		p.Network.Throttle = v.Throttle
+		p.Network.Throttle = round4(v.Throttle)
 
-		p.Stats.PlaytimeSeconds = v.StatPlaytimeSeconds
-		p.Stats.DistanceMeters = v.StatDistanceMeters
-		p.Stats.LongestHitMeters = v.StatLongestHitMeters
+		p.Stats.PlaytimeSeconds = round4(v.StatPlaytimeSeconds)
+		p.Stats.DistanceMeters = round4(v.StatDistanceMeters)
+		p.Stats.LongestHitMeters = round4(v.StatLongestHitMeters)
 		p.Stats.PlayersKilled = v.StatPlayersKilled
 		p.Stats.InfectedKilled = v.StatInfectedKilled
 
-		p.WeightGrams = v.WeightGrams
-		p.LifetimeSeconds = v.LifetimeSeconds
+		p.WeightGrams = round4(v.WeightGrams)
+		p.LifetimeSeconds = round4(v.LifetimeSeconds)
 	}
 }
 
@@ -297,52 +301,88 @@ func (dst *Territories) FillFrom(src *mod.Territories) {
 	for i := range *src {
 		v, t := &(*src)[i], &(*dst)[i]
 
-		t.Pos.X = v.PosX
-		t.Pos.Y = v.PosY
+		t.Pos.X = round4(v.PosX)
+		t.Pos.Y = round4(v.PosY)
 
-		t.Refresher.LifetimeFraction = v.LifetimeFraction
-		t.Refresher.Radius = v.RefresherRadius
+		t.Refresher.LifetimeFraction = round4(v.LifetimeFraction)
+		t.Refresher.Radius = round4(v.RefresherRadius)
 	}
 }
 
 // --------------------------------------------------------------------------------------------------------------------
 
-type Vehicles []struct {
-	// Hash is a stable non-negative hash of the vehicle's persistent ID (0..2^31-1);
-	// -1 when the persistent ID is unavailable.
-	Hash int `json:"hash"`
+type (
+	Vehicles []struct {
+		// Hash is a stable non-negative hash of the vehicle's persistent ID (0..2^31-1);
+		// -1 when the persistent ID is unavailable.
+		Hash int `json:"hash"`
 
-	// Class is the vehicle classification.
-	Class struct {
-		// Name is the entity class, e.g. "Hatchback_02_Blue", "Boat_01_Black".
+		// Class is the vehicle classification.
+		Class struct {
+			// Name is the entity class, e.g. "Hatchback_02_Blue", "Boat_01_Black".
+			Name string `json:"name"`
+			// Type is the engine vehicle category (from GetVehicleType()) with the "VehicleType" prefix stripped by
+			// the mod: "Car", "Boat", "Helicopter" (Expansion vehicles may report their own category).
+			Type string `json:"type"`
+		} `json:"class"`
+
+		// Pos is the vehicle position: x/y horizontal map plane, alt height (m), angle yaw degrees.
+		Pos struct {
+			X     float64 `json:"x"`
+			Y     float64 `json:"y"`
+			Alt   float64 `json:"alt"`
+			Angle float64 `json:"angle"`
+		} `json:"pos"`
+
+		// State is the vehicle's dynamic status.
+		State struct {
+			// Health is the normalized global health of the vehicle BODY only (chassis/panels/engine zone), 0..1.
+			// Attached parts carry their own condition in Parts.
+			Health float64 `json:"health"`
+			// SpeedMS is the current speed in m/s (small values snapped to 0).
+			SpeedMS float64 `json:"speed_ms"`
+
+			// Engine is the powertrain status.
+			Engine struct {
+				// On reports whether the engine is running.
+				On bool `json:"on"`
+				// RPM is the current engine revolutions per minute; 0 when off, and always 0 for boats (no RPM model).
+				RPM int `json:"rpm"`
+				// Gear is the selected gear index (0 = neutral on most gearboxes); -1 for vehicles without gears (boats).
+				Gear int `json:"gear"`
+			} `json:"engine"`
+
+			// LightsOn reports whether the vehicle lights are on.
+			LightsOn bool `json:"lights_on"`
+
+			// Crew counts the occupied vs total crew seats.
+			Crew struct {
+				Occupied int `json:"occupied"`
+				Capacity int `json:"capacity"`
+			} `json:"crew"`
+
+			// FuelFraction is tank fill level, 0..1; -1.0 when the vehicle has no fuel system / fuel is not applicable.
+			FuelFraction float64 `json:"fuel_fraction"`
+			// CoolantFraction is the radiator coolant level, 0..1; -1.0 when the vehicle has no radiator
+			// (motorbikes, boats, and other types without a cooling system).
+			CoolantFraction float64 `json:"coolant_fraction"`
+			// CargoItems is the total number of items stored in the vehicle's cargo (trunk + storage attachments),
+			// excluding the attached parts themselves.
+			CargoItems int `json:"cargo_items"`
+		} `json:"state"`
+
+		// Parts lists the vehicle's attached parts (wheels, doors, battery, radiator, spark plug, headlights, ...),
+		// each with its own health 0..1. Empty for vehicles without detachable parts (boats).
+		Parts []vehiclesParts `json:"parts"`
+	}
+
+	vehiclesParts struct {
+		// Name is the part entity class, e.g. "CarBattery", "CarRadiator", "SparkPlug", "Hatchback_02_Wheel".
 		Name string `json:"name"`
-		// Type is the engine vehicle category (from GetVehicleType()) with the "VehicleType" prefix stripped by
-		// the mod: "Car", "Boat", "Helicopter" (Expansion vehicles may report their own category).
-		Type string `json:"type"`
-	} `json:"class"`
-
-	// Pos is the vehicle position: x/y horizontal map plane, alt height (m), angle yaw degrees.
-	Pos struct {
-		X     float64 `json:"x"`
-		Y     float64 `json:"y"`
-		Alt   float64 `json:"alt"`
-		Angle float64 `json:"angle"`
-	} `json:"pos"`
-
-	// State is the vehicle's dynamic status.
-	State struct {
-		// Health is normalized global health, 0..1.
+		// Health is the part's normalized health, 0..1.
 		Health float64 `json:"health"`
-		// CrewOccupied is the number of occupied crew seats.
-		CrewOccupied int `json:"crew_occupied"`
-		// SpeedMS is the current speed in m/s (small values snapped to 0).
-		SpeedMS float64 `json:"speed_ms"`
-		// EngineOn reports whether the engine is running.
-		EngineOn bool `json:"engine_on"`
-		// FuelFraction is tank fill level, 0..1; -1.0 when the vehicle has no fuel system / fuel is not applicable.
-		FuelFraction float64 `json:"fuel_fraction"`
-	} `json:"state"`
-}
+	}
+)
 
 func (dst *Vehicles) FillFrom(src *mod.Vehicles) {
 	if src == nil {
@@ -361,16 +401,28 @@ func (dst *Vehicles) FillFrom(src *mod.Vehicles) {
 		c.Class.Name = v.ClassName
 		c.Class.Type = v.VehicleType
 
-		c.Pos.X = v.PosX
-		c.Pos.Y = v.PosY
-		c.Pos.Alt = v.PosAlt
-		c.Pos.Angle = v.PosAngle
+		c.Pos.X = round4(v.PosX)
+		c.Pos.Y = round4(v.PosY)
+		c.Pos.Alt = round4(v.PosAlt)
+		c.Pos.Angle = round4(v.PosAngle)
 
-		c.State.Health = v.Health
-		c.State.CrewOccupied = v.CrewOccupied
-		c.State.SpeedMS = v.SpeedMS
-		c.State.EngineOn = bool(v.EngineOn)
-		c.State.FuelFraction = v.FuelFraction
+		c.State.Health = round4(v.Health)
+		c.State.SpeedMS = round4(v.SpeedMS)
+		c.State.Engine.On = bool(v.EngineOn)
+		c.State.Engine.RPM = v.RPM
+		c.State.Engine.Gear = v.Gear
+		c.State.LightsOn = bool(v.LightsOn)
+		c.State.Crew.Occupied = v.CrewOccupied
+		c.State.Crew.Capacity = v.CrewCapacity
+		c.State.FuelFraction = round4(v.FuelFraction)
+		c.State.CoolantFraction = round4(v.CoolantFraction)
+		c.State.CargoItems = v.CargoItems
+
+		c.Parts = make([]vehiclesParts, len(v.Parts))
+		for j := range v.Parts {
+			c.Parts[j].Name = v.Parts[j].Name
+			c.Parts[j].Health = round4(v.Parts[j].Health)
+		}
 	}
 }
 
@@ -655,21 +707,21 @@ func (dst *World) FillFrom(src *mod.World) {
 	dst.EAI.Deaths = src.EAIDeaths
 	dst.EAI.NPCDeaths = src.EAINPCDeaths
 
-	dst.FPS.Current = src.FPS.Current
-	dst.FPS.WindowMin = src.FPS.WindowMin
-	dst.FPS.WindowMax = src.FPS.WindowMax
-	dst.FPS.WindowAvg = src.FPS.WindowAvg
+	dst.FPS.Current = round4(src.FPS.Current)
+	dst.FPS.WindowMin = round4(src.FPS.WindowMin)
+	dst.FPS.WindowMax = round4(src.FPS.WindowMax)
+	dst.FPS.WindowAvg = round4(src.FPS.WindowAvg)
 	dst.FPS.WindowSamples = src.FPS.WindowSamples
 	dst.FPS.Limit = src.FPS.Limit
 
-	dst.Weather.Temperature = src.Weather.Temperature
-	dst.Weather.TemperatureBase = src.Weather.TemperatureBase
-	dst.Weather.WindSpeed = src.Weather.WindSpeed
-	dst.Weather.WindDirection = src.Weather.WindDirection
-	dst.Weather.Rain = src.Weather.Rain
-	dst.Weather.Snow = src.Weather.Snow
-	dst.Weather.Fog = src.Weather.Fog
-	dst.Weather.Clouds = src.Weather.Clouds
+	dst.Weather.Temperature = round4(src.Weather.Temperature)
+	dst.Weather.TemperatureBase = round4(src.Weather.TemperatureBase)
+	dst.Weather.WindSpeed = round4(src.Weather.WindSpeed)
+	dst.Weather.WindDirection = round4(src.Weather.WindDirection)
+	dst.Weather.Rain = round4(src.Weather.Rain)
+	dst.Weather.Snow = round4(src.Weather.Snow)
+	dst.Weather.Fog = round4(src.Weather.Fog)
+	dst.Weather.Clouds = round4(src.Weather.Clouds)
 
 	dst.Food.Total = src.Food.Total
 	dst.Food.Other = src.Food.Other

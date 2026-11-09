@@ -22,9 +22,16 @@ class StateZ_TransportMetrics
 	// state
 	float m_Health;
 	int m_Passengers;
+	int m_CrewCapacity;
 	float m_SpeedMS;
+	int m_Rpm;
+	int m_Gear;
 	bool m_EngineOn;
+	bool m_LightsOn;
 	float m_FuelFraction;
+	float m_CoolantFraction;
+	int m_CargoItems;
+	ref array<ref StateZ_TransportPartSnapshot> m_Parts;
 
 	// position
 	float m_PosX;
@@ -67,6 +74,10 @@ class StateZ_TransportMetrics
 
 		m_Health = m_Transport.GetHealth01();
 		m_Passengers = GetPassengersCount();
+		m_CrewCapacity = m_Transport.CrewSize();
+		m_LightsOn = m_Transport.LightIsOn();
+		m_CargoItems = CountCargoItems();
+		BuildParts();
 
 		// position
 		vector pos = m_Transport.GetPosition();
@@ -83,6 +94,18 @@ class StateZ_TransportMetrics
 
 		m_EngineOn = false;
 		m_FuelFraction = -1.0;
+		m_CoolantFraction = -1.0;
+		m_Rpm = 0;
+		m_Gear = -1;
+
+		// rpm/gear/coolant are Car-only (covers motorbikes too); boats have none
+		CarScript carAll;
+		if (Class.CastTo(carAll, m_Transport)) {
+			m_Rpm = Math.Round(carAll.EngineGetRPM());
+			m_Gear = carAll.GetCurrentGear();
+			if (carAll.IsVitalRadiator())
+				m_CoolantFraction = carAll.GetFluidFraction(CarFluid.COOLANT);
+		}
 
 		CarScript car;
 		if (Class.CastTo(car, m_Transport) && car.IsVitalFuelTank()) {
@@ -126,14 +149,76 @@ class StateZ_TransportMetrics
 
 		snap.health = StateZ_Num.Round4(m_Health);
 		snap.crew_occupied = m_Passengers;
-		snap.speed_ms = m_SpeedMS;
+		snap.crew_capacity = m_CrewCapacity;
+		snap.speed_ms = StateZ_Num.Round4(m_SpeedMS);
+		snap.rpm = m_Rpm;
+		snap.gear = m_Gear;
 		snap.engine_on = m_EngineOn;
+		snap.lights_on = m_LightsOn;
 		snap.fuel_fraction = StateZ_Num.Round4(m_FuelFraction);
+		snap.coolant_fraction = StateZ_Num.Round4(m_CoolantFraction);
+		snap.cargo_items = m_CargoItems;
 
 		snap.pos_x = StateZ_Num.Round2(m_PosX);
 		snap.pos_y = StateZ_Num.Round2(m_PosZ);
 		snap.pos_alt = StateZ_Num.Round2(m_PosY);
 		snap.pos_angle = StateZ_Num.Round2(m_Yaw);
+
+		snap.parts = m_Parts;
+	}
+
+	/**
+	    \brief Count items stored in the vehicle's cargo (main + per-attachment cargo),
+	           excluding the attached parts themselves.
+	*/
+	protected int CountCargoItems()
+	{
+		GameInventory inv = m_Transport.GetInventory();
+		if (!inv)
+			return 0;
+
+		int total = 0;
+
+		CargoBase main = inv.GetCargo();
+		if (main)
+			total += main.GetItemCount();
+
+		int count = inv.AttachmentCount();
+		for (int i = 0; i < count; ++i) {
+			EntityAI att = inv.GetAttachmentFromIndex(i);
+			if (!att || !att.GetInventory())
+				continue;
+
+			CargoBase attCargo = att.GetInventory().GetCargo();
+			if (attCargo)
+				total += attCargo.GetItemCount();
+		}
+
+		return total;
+	}
+
+	/**
+	    \brief Rebuild the per-part health list from the vehicle's attachments.
+	*/
+	protected void BuildParts()
+	{
+		m_Parts = new array<ref StateZ_TransportPartSnapshot>();
+
+		GameInventory inv = m_Transport.GetInventory();
+		if (!inv)
+			return;
+
+		int count = inv.AttachmentCount();
+		for (int i = 0; i < count; ++i) {
+			EntityAI att = inv.GetAttachmentFromIndex(i);
+			if (!att)
+				continue;
+
+			StateZ_TransportPartSnapshot part = new StateZ_TransportPartSnapshot();
+			part.name = att.GetType();
+			part.health = StateZ_Num.Round4(att.GetHealth01());
+			m_Parts.Insert(part);
+		}
 	}
 
 	/**

@@ -212,6 +212,12 @@ class StateZ_PlayerSnapshot
 // Transport snapshot — one entry in vehicles.json array
 // ---------------------------------------------------------------------------
 
+class StateZ_TransportPartSnapshot
+{
+	string name;    //!< part class name (e.g. CarBattery, CivSedanWheel, CarRadiator)
+	float health;   //!< normalized part health 0..1
+}
+
 class StateZ_TransportSnapshot
 {
 	string class_name;
@@ -220,14 +226,22 @@ class StateZ_TransportSnapshot
 
 	float health;
 	int crew_occupied;
+	int crew_capacity;
 	float speed_ms;
+	int rpm;
+	int gear;
 	bool engine_on;
+	bool lights_on;
 	float fuel_fraction;
+	float coolant_fraction;  //!< radiator coolant 0..1, or -1 when the vehicle has no radiator
+	int cargo_items;         //!< total items stored in the vehicle's cargo (excluding parts)
 
 	float pos_x;
 	float pos_y;
 	float pos_alt;
 	float pos_angle;
+
+	ref array<ref StateZ_TransportPartSnapshot> parts; //!< per-part health (attachments)
 }
 
 // ---------------------------------------------------------------------------

@@ -43,10 +43,10 @@ func OpenDataDir(fsys fs.FS) *DataDir {
 //
 // The returned value shares backing storage (maps/slices) with the cache and must be treated as READ-ONLY;
 // mutating it corrupts the cached copy.
-func (dd *DataDir) ReadFile[T any](fName DataFileName) (zero T, _ bool /* from cache? */, _ error) {
+func (dd *DataDir) ReadFile[T any](fName DataFileName) (*T, bool /* from cache? */, error) {
 	info, statErr := fs.Stat(dd.fsys, string(fName))
 	if statErr != nil {
-		return zero, false, statErr
+		return nil, false, statErr
 	}
 
 	size, mtime := info.Size(), info.ModTime().UnixMilli()
@@ -55,7 +55,7 @@ func (dd *DataDir) ReadFile[T any](fName DataFileName) (zero T, _ bool /* from c
 		dd.cacheMu.Lock()
 
 		if entry, hit := dd.cache[fName]; hit && entry.size == size && entry.mtime == mtime {
-			if data, ok := entry.data.(T); ok {
+			if data, ok := entry.data.(*T); ok {
 				dd.cacheMu.Unlock()
 
 				return data, true, nil
@@ -63,7 +63,7 @@ func (dd *DataDir) ReadFile[T any](fName DataFileName) (zero T, _ bool /* from c
 
 			dd.cacheMu.Unlock()
 
-			return zero, false, errors.New("cached data type mismatch for " + string(fName))
+			return nil, false, errors.New("cached data type mismatch for " + string(fName))
 		}
 
 		dd.cacheMu.Unlock()
@@ -72,19 +72,19 @@ func (dd *DataDir) ReadFile[T any](fName DataFileName) (zero T, _ bool /* from c
 	// slow path - read the file and update the cache
 	f, fErr := dd.fsys.Open(string(fName))
 	if fErr != nil {
-		return zero, false, fErr
+		return nil, false, fErr
 	}
 	defer func() { _ = f.Close() }()
 
-	var fresh T
-	if err := json.NewDecoder(f).Decode(&fresh); err != nil {
-		return zero, false, err
+	var data T
+	if err := json.NewDecoder(f).Decode(&data); err != nil {
+		return nil, false, err
 	}
 
 	// commit only after a successful decoding
 	dd.cacheMu.Lock()
-	dd.cache[fName] = dataDirCacheEntry{mtime: mtime, size: size, data: fresh}
+	dd.cache[fName] = dataDirCacheEntry{mtime: mtime, size: size, data: &data}
 	dd.cacheMu.Unlock()
 
-	return fresh, false, f.Close() // it's better to return the error from Close() than to silently ignore it
+	return &data, false, f.Close() // it's better to return the error from Close() than to silently ignore it
 }

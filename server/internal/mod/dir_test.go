@@ -55,12 +55,12 @@ func TestDataDir_ReadFile(t *testing.T) {
 				got, cached, err := dd.ReadFile[sample](file)
 				assert.NoError(t, err)
 				assert.False(t, cached) // first read is always fresh
-				assert.DeepEqual(t, tc.want, got)
+				assert.DeepEqual(t, tc.want, *got)
 
 				got, cached, err = dd.ReadFile[sample](file)
 				assert.NoError(t, err)
 				assert.True(t, cached) // second read is cached
-				assert.DeepEqual(t, tc.want, got)
+				assert.DeepEqual(t, tc.want, *got)
 			})
 		}
 	})
@@ -104,7 +104,8 @@ func TestDataDir_ReadFile(t *testing.T) {
 
 		dd := mod.OpenDataDir(fstest.MapFS{})
 
-		_, cached, err := dd.ReadFile[sample](file)
+		data, cached, err := dd.ReadFile[sample](file)
+		assert.Nil(t, data)
 		assert.Error(t, err)
 		assert.ErrorIs(t, err, fs.ErrNotExist)
 		assert.False(t, cached)
@@ -115,7 +116,8 @@ func TestDataDir_ReadFile(t *testing.T) {
 
 		dd := mod.OpenDataDir(fstest.MapFS{string(file): mapFile(`{not json`, time.Unix(1, 0))})
 
-		_, cached, err := dd.ReadFile[sample](file)
+		data, cached, err := dd.ReadFile[sample](file)
+		assert.Nil(t, data)
 		assert.Error(t, err)
 		assert.False(t, cached)
 	})

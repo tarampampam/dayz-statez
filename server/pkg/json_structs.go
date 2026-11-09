@@ -1,31 +1,9 @@
-package handlers
-
-import (
-	"maps"
-	"math"
-
-	"server/internal/mod"
-)
-
-// round4 rounds f to at most 4 decimal places, trimming needless precision so the API JSON stays compact.
-func round4(f float64) float64 { return math.Round(f*1e4) / 1e4 }
+package pkg
 
 type Animals struct {
 	// ByType maps canonical animal type -> live count, e.g. "wolf", "deer", "cow", "pig", "sheep", "goat", "bear".
 	// Keys are derived from the animal's steak/pelt config, lowercased. Dynamic key set.
 	ByType map[string]int `json:"by_type"`
-}
-
-func (dst *Animals) FillFrom(src *mod.Animals) {
-	if src == nil {
-		dst.ByType = map[string]int{}
-
-		return
-	}
-
-	dst.ByType = make(map[string]int, len(src.ByType))
-
-	maps.Copy(dst.ByType, src.ByType)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -45,26 +23,6 @@ type Areas []struct {
 	Insiders int `json:"insiders"`
 }
 
-func (dst *Areas) FillFrom(src *mod.Areas) {
-	if src == nil {
-		*dst = nil
-
-		return
-	}
-
-	*dst = make(Areas, len(*src))
-
-	for i := range *src {
-		v, a := &(*src)[i], &(*dst)[i]
-
-		a.Type = v.Type
-		a.Pos.X = round4(v.PosX)
-		a.Pos.Y = round4(v.PosY)
-		a.Radius = round4(v.Radius)
-		a.Insiders = v.Insiders
-	}
-}
-
 // --------------------------------------------------------------------------------------------------------------------
 
 type Events struct {
@@ -72,18 +30,6 @@ type Events struct {
 	// (e.g. "ClientConnected", "ClientDisconnected", "PlayerDeath", "ChatMessage", "MPSessionStart"), or "unknown_<id>"
 	// for event ids without a known name.
 	Events map[string]int `json:"events"`
-}
-
-func (dst *Events) FillFrom(src *mod.Events) {
-	if src == nil {
-		dst.Events = map[string]int{}
-
-		return
-	}
-
-	dst.Events = make(map[string]int, len(src.Events))
-
-	maps.Copy(dst.Events, src.Events)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -94,21 +40,6 @@ type Hits struct {
 	PlayerHit map[string]int `json:"player_hit"`
 	// CreatureHit maps ammo type -> cumulative qualifying hits on creatures.
 	CreatureHit map[string]int `json:"creature_hit"`
-}
-
-func (dst *Hits) FillFrom(src *mod.Hits) {
-	if src == nil {
-		dst.PlayerHit = map[string]int{}
-		dst.CreatureHit = map[string]int{}
-
-		return
-	}
-
-	dst.PlayerHit = make(map[string]int, len(src.PlayerHit))
-	dst.CreatureHit = make(map[string]int, len(src.CreatureHit))
-
-	maps.Copy(dst.PlayerHit, src.PlayerHit)
-	maps.Copy(dst.CreatureHit, src.CreatureHit)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -214,63 +145,6 @@ type Players []struct {
 	LifetimeSeconds float64 `json:"lifetime_seconds"`
 }
 
-func (dst *Players) FillFrom(src *mod.Players) {
-	if src == nil {
-		*dst = nil
-
-		return
-	}
-
-	*dst = make(Players, len(*src))
-
-	for i := range *src {
-		v, p := &(*src)[i], &(*dst)[i]
-
-		p.ID.SteamID = v.SteamID
-		p.ID.GUID = v.GUID
-		p.ID.Name = v.Name
-
-		p.Character.Type = v.CharacterType
-		p.Character.Gender = v.Gender
-		p.Character.BloodType = v.BloodType
-
-		p.Pos.X = round4(v.PosX)
-		p.Pos.Y = round4(v.PosY)
-		p.Pos.Alt = round4(v.PosAlt)
-		p.Pos.Angle = round4(v.PosAngle)
-
-		p.Vitals.Health = round4(v.Health)
-		p.Vitals.Blood = round4(v.Blood)
-		p.Vitals.Shock = round4(v.Shock)
-		p.Vitals.Energy = round4(v.Energy)
-		p.Vitals.Water = round4(v.Water)
-		p.Vitals.Toxicity = round4(v.Toxicity)
-		p.Vitals.Wetness = round4(v.Wetness)
-		p.Vitals.TemperatureCelsius = round4(v.TemperatureCelsius)
-
-		p.State.IsLoaded = bool(v.IsLoaded)
-		p.State.IsUnconscious = bool(v.IsUnconscious)
-		p.State.IsRestrained = bool(v.IsRestrained)
-		p.State.Godmode = bool(v.Godmode)
-		p.State.ImmunityBoosted = bool(v.ImmunityBoosted)
-		p.State.AgentsActive = v.AgentsActive
-		p.State.BleedingSources = v.BleedingSources
-
-		p.Network.Ping.Min = v.PingMin
-		p.Network.Ping.Max = v.PingMax
-		p.Network.Throttle = round4(v.Throttle)
-
-		p.Stats.PlaytimeSeconds = round4(v.StatPlaytimeSeconds)
-		p.Stats.DistanceMeters = round4(v.StatDistanceMeters)
-		p.Stats.LongestHitMeters = round4(v.StatLongestHitMeters)
-		p.Stats.PlayersKilled = v.StatPlayersKilled
-		p.Stats.InfectedKilled = v.StatInfectedKilled
-
-		p.WeightGrams = round4(v.WeightGrams)
-		p.LifetimeSeconds = round4(v.LifetimeSeconds)
-	}
-}
-
 // --------------------------------------------------------------------------------------------------------------------
 
 type Territories []struct {
@@ -287,26 +161,6 @@ type Territories []struct {
 		// Radius is the flag refresh radius in meters (GameConstants.REFRESHER_RADIUS).
 		Radius float64 `json:"radius"`
 	} `json:"refresher"`
-}
-
-func (dst *Territories) FillFrom(src *mod.Territories) {
-	if src == nil {
-		*dst = nil
-
-		return
-	}
-
-	*dst = make(Territories, len(*src))
-
-	for i := range *src {
-		v, t := &(*src)[i], &(*dst)[i]
-
-		t.Pos.X = round4(v.PosX)
-		t.Pos.Y = round4(v.PosY)
-
-		t.Refresher.LifetimeFraction = round4(v.LifetimeFraction)
-		t.Refresher.Radius = round4(v.RefresherRadius)
-	}
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -373,58 +227,17 @@ type (
 
 		// Parts lists the vehicle's attached parts (wheels, doors, battery, radiator, spark plug, headlights, ...),
 		// each with its own health 0..1. Empty for vehicles without detachable parts (boats).
-		Parts []vehiclesParts `json:"parts"`
+		Parts []VehiclePart `json:"parts"`
 	}
 
-	vehiclesParts struct {
+	// VehiclePart is a single attached vehicle part with its own condition.
+	VehiclePart struct {
 		// Name is the part entity class, e.g. "CarBattery", "CarRadiator", "SparkPlug", "Hatchback_02_Wheel".
 		Name string `json:"name"`
 		// Health is the part's normalized health, 0..1.
 		Health float64 `json:"health"`
 	}
 )
-
-func (dst *Vehicles) FillFrom(src *mod.Vehicles) {
-	if src == nil {
-		*dst = nil
-
-		return
-	}
-
-	*dst = make(Vehicles, len(*src))
-
-	for i := range *src {
-		v, c := &(*src)[i], &(*dst)[i]
-
-		c.Hash = v.Hash
-
-		c.Class.Name = v.ClassName
-		c.Class.Type = v.VehicleType
-
-		c.Pos.X = round4(v.PosX)
-		c.Pos.Y = round4(v.PosY)
-		c.Pos.Alt = round4(v.PosAlt)
-		c.Pos.Angle = round4(v.PosAngle)
-
-		c.State.Health = round4(v.Health)
-		c.State.SpeedMS = round4(v.SpeedMS)
-		c.State.Engine.On = bool(v.EngineOn)
-		c.State.Engine.RPM = v.RPM
-		c.State.Engine.Gear = v.Gear
-		c.State.LightsOn = bool(v.LightsOn)
-		c.State.Crew.Occupied = v.CrewOccupied
-		c.State.Crew.Capacity = v.CrewCapacity
-		c.State.FuelFraction = round4(v.FuelFraction)
-		c.State.CoolantFraction = round4(v.CoolantFraction)
-		c.State.CargoItems = v.CargoItems
-
-		c.Parts = make([]vehiclesParts, len(v.Parts))
-		for j := range v.Parts {
-			c.Parts[j].Name = v.Parts[j].Name
-			c.Parts[j].Health = round4(v.Parts[j].Health)
-		}
-	}
-}
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -444,27 +257,6 @@ type Weapons struct {
 		// (and "eai_*" variants on EXPANSIONMODAI builds).
 		Creatures map[string]int `json:"creatures"`
 	} `json:"kills"`
-}
-
-func (dst *Weapons) FillFrom(src *mod.Weapons) {
-	if src == nil {
-		dst.Shots = map[string]int{}
-		dst.WorldCount = map[string]int{}
-		dst.Kills.Players = map[string]int{}
-		dst.Kills.Creatures = map[string]int{}
-
-		return
-	}
-
-	dst.Shots = make(map[string]int, len(src.Shots))
-	dst.WorldCount = make(map[string]int, len(src.WorldCount))
-	dst.Kills.Players = make(map[string]int, len(src.PlayerKills))
-	dst.Kills.Creatures = make(map[string]int, len(src.CreatureKills))
-
-	maps.Copy(dst.Shots, src.Shots)
-	maps.Copy(dst.WorldCount, src.WorldCount)
-	maps.Copy(dst.Kills.Players, src.PlayerKills)
-	maps.Copy(dst.Kills.Creatures, src.CreatureKills)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -626,130 +418,6 @@ type World struct {
 	} `json:"fishing"`
 }
 
-func (dst *World) FillFrom(src *mod.World) {
-	if src == nil {
-		*dst = World{}
-
-		return
-	}
-
-	dst.MapName = src.World
-	dst.UptimeSeconds = int(src.UptimeSeconds)
-
-	// in-game clock derived from the artificial in-game epoch; its intra-day part (% 86400) is exact
-	sod := ((src.GameTimeUnix % 86400) + 86400) % 86400
-	dst.Time.Hour = sod / 3600
-	dst.Time.Minute = (sod % 3600) / 60
-
-	switch src.TimeOfDay { // engine daytime phase (0..3) -> human-readable string
-	case 0:
-		dst.Time.TimeOfDay = "dawn"
-	case 1:
-		dst.Time.TimeOfDay = "day"
-	case 2:
-		dst.Time.TimeOfDay = "dusk"
-	case 3:
-		dst.Time.TimeOfDay = "night"
-	}
-
-	dst.Players.Online = src.PlayersOnline
-	dst.Players.Max = src.MaxPlayers
-	dst.Players.Spawns = src.PlayersSpawns
-	dst.Players.Deaths = src.PlayersDeaths
-
-	dst.Infected.Alive = src.Infected
-	dst.Infected.Dead = src.InfectedDead
-	dst.Infected.Deaths = src.InfectedDeaths
-
-	dst.Animals.Alive = src.Animals
-	dst.Animals.Dead = src.AnimalsDead
-	dst.Animals.Deaths = src.AnimalsDeaths
-
-	dst.Vehicles.Cars = src.Cars
-	dst.Vehicles.Boats = src.Boats
-	dst.Vehicles.Helicopters = src.Helicopters
-	dst.Vehicles.Destroyed.Cars = src.CarsDestroyed
-	dst.Vehicles.Destroyed.Boats = src.BoatsDestroyed
-	dst.Vehicles.Destroyed.Helicopters = src.HelicoptersDestroyed
-
-	dst.Weapons.Count = src.Weapons
-	dst.Weapons.Suppressors = src.Suppressors
-	dst.Weapons.Optics = src.Optics
-	dst.Weapons.AmmoBoxes = src.AmmoBoxes
-	dst.Weapons.Magazines = src.Magazines
-	dst.Weapons.Ammo = src.Ammo
-	dst.Weapons.Explosives = src.Explosives
-	dst.Weapons.ExplosivesDetonated = src.ExplosivesDetonated
-
-	dst.Entities.Items = src.Items
-	dst.Entities.Bottles = src.Bottles
-	dst.Entities.Clothes = src.Clothes
-	dst.Entities.Boxes = src.Boxes
-	dst.Entities.TerritoryFlags = src.TerritoryFlags
-	dst.Entities.BaseBuildings = src.BaseBuildings
-	dst.Entities.Tents = src.Tents
-	dst.Entities.Stashes = src.Stashes
-	dst.Entities.Gardens = src.Gardens
-	dst.Entities.Containers = src.Containers
-	dst.Entities.CarParts = src.CarParts
-	dst.Entities.CarWheels = src.CarWheels
-
-	dst.Activity.EffectAreas = src.EffectAreas
-	dst.Activity.Corpses = src.Corpses
-	dst.Activity.CrashSites = src.CrashSites
-	dst.Activity.ArtilleryBarrages = src.ArtilleryBarrages
-	dst.Activity.GiftsUnpacked = src.GiftsUnpacked
-	dst.Activity.ChatMessages = src.ChatMessages
-	dst.Activity.PathGraphUpdates = src.PathGraphUpdates
-
-	dst.EAI.Survivors = src.EAI
-	dst.EAI.NPCs = src.EAINPC
-	dst.EAI.Deaths = src.EAIDeaths
-	dst.EAI.NPCDeaths = src.EAINPCDeaths
-
-	dst.FPS.Current = round4(src.FPS.Current)
-	dst.FPS.WindowMin = round4(src.FPS.WindowMin)
-	dst.FPS.WindowMax = round4(src.FPS.WindowMax)
-	dst.FPS.WindowAvg = round4(src.FPS.WindowAvg)
-	dst.FPS.WindowSamples = src.FPS.WindowSamples
-	dst.FPS.Limit = src.FPS.Limit
-
-	dst.Weather.Temperature = round4(src.Weather.Temperature)
-	dst.Weather.TemperatureBase = round4(src.Weather.TemperatureBase)
-	dst.Weather.WindSpeed = round4(src.Weather.WindSpeed)
-	dst.Weather.WindDirection = round4(src.Weather.WindDirection)
-	dst.Weather.Rain = round4(src.Weather.Rain)
-	dst.Weather.Snow = round4(src.Weather.Snow)
-	dst.Weather.Fog = round4(src.Weather.Fog)
-	dst.Weather.Clouds = round4(src.Weather.Clouds)
-
-	dst.Food.Total = src.Food.Total
-	dst.Food.Other = src.Food.Other
-	dst.Food.Fruit = src.Food.Fruit
-	dst.Food.Mushroom = src.Food.Mushroom
-	dst.Food.Corpse = src.Food.Corpse
-	dst.Food.Worm = src.Food.Worm
-	dst.Food.Guts = src.Food.Guts
-	dst.Food.Meat = src.Food.Meat
-	dst.Food.HumanMeat = src.Food.HumanMeat
-	dst.Food.Disinfectant = src.Food.Disinfectant
-	dst.Food.Pills = src.Food.Pills
-	dst.Food.Drink = src.Food.Drink
-	dst.Food.Snack = src.Food.Snack
-	dst.Food.Candy = src.Food.Candy
-	dst.Food.CannedSmall = src.Food.CannedSmall
-	dst.Food.CannedMedium = src.Food.CannedMedium
-	dst.Food.CannedBig = src.Food.CannedBig
-	dst.Food.Jar = src.Food.Jar
-
-	dst.Mining.Bushes = src.Mining.Bushes
-	dst.Mining.Rocks = src.Mining.Rocks
-	dst.Mining.Trees = src.Mining.Trees
-
-	dst.Fishing.Attempts = src.Fishing.Attempts
-	dst.Fishing.Catches = src.Fishing.Catches
-}
-
 // --------------------------------------------------------------------------------------------------------------------
 
 type Zombies struct {
@@ -760,19 +428,4 @@ type Zombies struct {
 	// ByState maps mind state -> live count. Keys: "calm", "disturbed", "alerted", "chase", "fight", and "dead"
 	// (killed, pending cleanup).
 	ByState map[string]int `json:"by_state"`
-}
-
-func (dst *Zombies) FillFrom(src *mod.Zombies) {
-	if src == nil {
-		dst.ByType = map[string]int{}
-		dst.ByState = map[string]int{}
-
-		return
-	}
-
-	dst.ByType = make(map[string]int, len(src.ByType))
-	dst.ByState = make(map[string]int, len(src.ByState))
-
-	maps.Copy(dst.ByType, src.ByType)
-	maps.Copy(dst.ByState, src.ByState)
 }

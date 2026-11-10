@@ -46,12 +46,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/cache@v5
-        with: {path: ./tools, key: "${{ runner.os }}-depbo-${{ hashFiles('Makefile') }}"}
+        with: {path: ./tools, key: "${{ runner.os }}-makefile-${{ hashFiles('Makefile') }}"}
       - run: sudo apt-get update
       - run: sudo apt-get install --no-install-recommends --yes libvorbisenc2
       - run: make dist/mod
-      - run: zip -r -X ../mod.zip ./*
+      - run: zip -r -X ../../mod.zip ./*
         working-directory: ./dist/mod
-      - run: tar --create --gzip --file=../mod.tar.gz --mtime='@0' --owner=0 --group=0 --mode='u=rwX,go=rX' ./*
+      - run: tar --create --gzip --file=../../mod.tar.gz --mtime='@0' --owner=0 --group=0 --mode='u=rwX,go=rX' ./*
         working-directory: ./dist/mod
       - run: ls -lah

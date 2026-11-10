@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"server/internal/httpserver"
@@ -57,6 +58,17 @@ func (a *App) Run(ctx context.Context, args []string) error { //nolint:funlen
 		tlsCertFile string
 		tlsKeyFile  string
 	)
+
+	flags.Usage = func() {
+		var sb strings.Builder
+		sb.Grow(128) //nolint:mnd
+
+		sb.WriteString("StateZ server - an HTTP server for DayZ mod data.\n")
+		sb.WriteString("Crafted with <3 by tarampampam, at alexzulu's request.\n\n")
+
+		_, _ = fmt.Fprint(flags.Output(), sb.String())
+		flags.PrintDefaults()
+	}
 
 	// attach flags to the flag set
 	flags.StringVar(

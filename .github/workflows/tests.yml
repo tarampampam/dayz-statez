@@ -52,7 +52,7 @@ jobs:
       - run: make dist/mod
       - run: zip -r -X ../../mod.zip ./*
         working-directory: ./dist/mod
-      - run: tar --create --gzip --file=../../mod.tar.gz --mtime='@0' --owner=0 --group=0 ./*
+      - run: tar --create --gzip --file=../../mod.tar.gz --mtime='@0' --owner=0 --group=0 *
         working-directory: ./dist/mod
       - uses: actions/upload-artifact@v7
         with: {name: mod.zip, path: ./mod.zip, if-no-files-found: error, archive: false}

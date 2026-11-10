@@ -111,8 +111,16 @@ chmod 0640 /etc/statez-server/.env
 ```
 
 `$profile:statez/data` is `/path/to/statez/data` on disk. The `statez` user needs read access to that
-directory and traverse (`x`) access to its parent directories; configure this according to the ownership and
-permissions of your DayZ server installation.
+directory and traverse (`x`) access to its parent directories. After the mod has created `$profile:statez`, grant
+the `statez` group access to it:
+
+```bash
+chgrp -R statez /path/to/statez
+chmod -R g+rX /path/to/statez
+chmod g+s /path/to/statez/data
+```
+
+The set-group-ID bit makes new snapshots inherit the `statez` group.
 
 Check that `statez` can read the data:
 

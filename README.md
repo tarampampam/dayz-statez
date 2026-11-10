@@ -126,8 +126,10 @@ Create the unit file `/etc/systemd/system/statez-server.service`:
 Description=StateZ server
 After=network-online.target
 Wants=network-online.target
-
-[Service]
+#After=dayz.service # start after the DayZ process starts
+#Wants=dayz.service # start DayZ together with StateZ; a DayZ failure does not stop StateZ
+#PartOf=dayz.service # stop/restart StateZ when DayZ is stopped/restarted; one-way, does not start DayZ
+#Requires=dayz.service # fails StateZ start if DayZ fails to start
 User=statez
 Group=statez
 EnvironmentFile=/etc/statez-server/.env

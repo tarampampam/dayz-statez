@@ -15,14 +15,19 @@ chown root:statez /etc/statez-server/.env
 chmod 0640 /etc/statez-server/.env
 ```
 
-The `statez` user must be able to read the data directory. Grant read access to the existing files and to files
-created later, and traverse access (`x`) on every parent directory (list all of them, e.g. `/path` and `/path/to`):
+The `statez` user must be able to read the data directory. Make the `statez` group the owner of the data, give it read
+access, make new files inherit the group (`g+s`), and grant traverse (`x`) on every parent directory (list all of them,
+e.g. `/path` and `/path/to`):
 
 ```bash
-setfacl -R -m u:statez:rX /path/to/statez/data
-setfacl -R -d -m u:statez:rX /path/to/statez/data
-setfacl -m u:statez:x /path /path/to
+chgrp -R statez /path/to/statez/data
+chmod -R g+rX /path/to/statez/data
+chmod g+s /path/to/statez/data
+chmod o+x /path /path/to
 ```
+
+New files keep the permissions of the process that writes them, so it must use a umask that allows group read
+(e.g. `022`).
 
 Check that `statez` can read the data:
 
@@ -66,6 +71,18 @@ curl -i http://127.0.0.1:8080/healthz
 curl -i -H "Authorization: Bearer !!!CHANGE_ME!!!" http://127.0.0.1:8080/world
 ```
 
+### Logs
+
+Logs go to journald:
+
+```bash
+journalctl -u statez-server -f
+journalctl -u statez-server --since "1 hour ago" --no-pager
+```
+
+Log size is limited by journald settings (`SystemMaxUse=` in `/etc/systemd/journald.conf`). By default, it is 10%
+of the filesystem, capped at 4G.
+
 ### Uninstalling
 
 ```bash
@@ -74,5 +91,4 @@ rm /etc/systemd/system/statez-server.service /usr/local/bin/statez-server
 rm -r /etc/statez-server
 systemctl daemon-reload
 userdel statez
-rm /usr/local/bin/statez-server
 ```

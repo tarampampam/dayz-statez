@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+# docs: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+
+name: 🚀 Release
+
+on:
+  release: {types: [published]}
+  workflow_dispatch: {}
+
+jobs:
+  build-mod:
+    name: Build the mod (pbo) file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v5
+        with: {path: ./tools, key: "${{ runner.os }}-makefile-${{ hashFiles('Makefile') }}"}
+      - run: sudo apt-get update
+      - run: sudo apt-get install --no-install-recommends --yes libvorbisenc2
+      - run: make dist/mod
+      - run: zip -r -X ../../mod.zip ./*
+        working-directory: ./dist/mod
+      - run: tar --create --gzip --file=../../mod.tar.gz --mtime='@0' --owner=0 --group=0 *
+        working-directory: ./dist/mod
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./mod.zip
+          asset_name: mod.zip
+          tag: ${{ github.event.release.tag_name }}
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./mod.tar.gz
+          asset_name: mod.tar.gz
+          tag: ${{ github.event.release.tag_name }}
+
+  build-server:
+    name: Build the server binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with: {go-version-file: ./server/go.mod, cache-dependency-path: ./server/go.sum}
+      - run: make dist/statez-server
+        env: {GOOS: linux, GOARCH: amd64}
+      - run: zip -X ../statez-server.zip statez-server
+        working-directory: ./dist
+      - run: tar --create --gzip --file=../statez-server.tar.gz --mtime='@0' --owner=0 --group=0 statez-server
+        working-directory: ./dist
+      - uses: actions/upload-artifact@v7
+        with: {name: statez-server.zip, path: ./statez-server.zip, if-no-files-found: error, archive: false}
+      - uses: actions/upload-artifact@v7
+        with: {name: statez-server.tar.gz, path: ./statez-server.tar.gz, if-no-files-found: error, archive: false}
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./statez-server.zip
+          asset_name: statez-server-linux-amd64.zip
+          tag: ${{ github.event.release.tag_name }}
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./statez-server.tar.gz
+          asset_name: statez-server-linux-amd64.tar.gz
+          tag: ${{ github.event.release.tag_name }}

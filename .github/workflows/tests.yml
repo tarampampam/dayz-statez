@@ -39,3 +39,14 @@ jobs:
           version: v2.15.0
           working-directory: ./server
       - run: go test -race -covermode=atomic ./...
+
+  build-mod:
+    name: Build the mod (pbo) file
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v5
+        with:
+          path: ./tools
+          key: ${{ runner.os }}-depbo-${{ hashFiles('Makefile') }}
+      - run: make dist/mod

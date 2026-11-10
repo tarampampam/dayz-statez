@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
-        with: {go-version-file: ./server/go.mod}
+        with: {go-version-file: ./server/go.mod, cache-dependency-path: ./server/go.sum}
       - uses: golangci/golangci-lint-action@v9
         with:
           # renovate: source=github-releases name=golangci/golangci-lint extractVersion=^(?<version>v.+)$

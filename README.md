@@ -46,9 +46,15 @@ flowchart LR
 
 The mod is server-side only. **Clients need nothing installed**.
 
-> TODO: installation from GitHub Releases. Update once the CI that publishes releases is ready.
+Download [`mod.tar.gz`](https://github.com/tarampampam/dayz-statez/releases/latest/download/mod.tar.gz)
+from the latest release and unpack it into the DayZ server directory:
 
-Start the server with `-serverMod=@statez`:
+```bash
+curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/mod.tar.gz
+tar -xzf mod.tar.gz -C /path/to/dayz-server
+```
+
+The archive creates `/path/to/dayz-server/@statez`. Start the server with `-serverMod=@statez`:
 
 ```bash
 cd /path/to/dayz-server && ./DayZServer -config=serverDZ.cfg -serverMod=@statez
@@ -85,8 +91,15 @@ so step 2 is the only way to remove that file.
 
 ## Server: installing and starting `statez-server`
 
-Place the binary at `/usr/local/bin/statez-server` first, then create a system user and the config file (run
-everything as root):
+Run the following as root to download the Linux `amd64` server archive, extract it, and install the binary:
+
+```bash
+curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/statez-server-linux-amd64.tar.gz
+tar -xzf statez-server-linux-amd64.tar.gz
+install -m 0755 statez-server /usr/local/bin/statez-server
+```
+
+Then create the system user and config file:
 
 ```bash
 useradd --system --no-create-home --shell /usr/sbin/nologin statez
@@ -223,8 +236,3 @@ curl -s -H "Authorization: Bearer $STATEZ_TOKEN" http://127.0.0.1:8080/world
 
 * Mod (`mod/`): GPL-3.0-or-later (see `mod/LICENSE`). It is based on WoozyMasta/metricz, Copyright (c) WoozyMasta.
 * Server (`server/`): MIT.
-
-## Releases
-
-> TODO: binaries and the mod PBO will be published on GitHub Releases. Update this section once the CI pipeline is
-ready.

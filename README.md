@@ -110,19 +110,9 @@ chown root:statez /etc/statez-server/.env
 chmod 0640 /etc/statez-server/.env
 ```
 
-The `statez` user must be able to read the data directory. Make the `statez` group the owner of the data, give it read
-access, make new files inherit the group (`g+s`), and grant traverse (`x`) on every parent directory (list all of them,
-e.g. `/path` and `/path/to`):
-
-```bash
-chgrp -R statez /path/to/statez/data
-chmod -R g+rX /path/to/statez/data
-chmod g+s /path/to/statez/data
-chmod o+x /path /path/to
-```
-
-New files keep the permissions of the process that writes them, so it must use a umask that allows group read
-(e.g. `022`).
+`$profile:statez/data` is `/path/to/statez/data` on disk. The `statez` user needs read access to that
+directory and traverse (`x`) access to its parent directories; configure this according to the ownership and
+permissions of your DayZ server installation.
 
 Check that `statez` can read the data:
 

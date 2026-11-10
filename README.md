@@ -104,8 +104,7 @@ Then create the system user and config file:
 ```bash
 useradd --system --no-create-home --shell /usr/sbin/nologin statez
 install -d -m 0755 /etc/statez-server
-echo 'STATEZ_SERVER_LISTEN=127.0.0.1:8080' > /etc/statez-server/.env
-echo 'STATEZ_SERVER_MOD_DATA_DIR=/path/to/statez/data' >> /etc/statez-server/.env
+echo 'STATEZ_SERVER_MOD_DATA_DIR=/path/to/statez/data' > /etc/statez-server/.env
 echo 'STATEZ_SERVER_API_TOKEN=!!!CHANGE_ME!!!' >> /etc/statez-server/.env
 chown root:statez /etc/statez-server/.env
 chmod 0640 /etc/statez-server/.env

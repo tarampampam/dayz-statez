@@ -1,5 +1,8 @@
 #!/usr/bin/make
 
+.DEFAULT_GOAL: all
+all: dist/mod dist/statez-server
+
 tools/depbo:
 	@mkdir -p ./tools
 	curl -L -o ./tools/depbo.tgz \
@@ -22,3 +25,4 @@ dist/mod: tools/depbo
 .PHONY: dist/statez-server
 dist/statez-server:
 	CGO_ENABLED=0 go build -C ./server -ldflags "-s -w" -trimpath -buildvcs=false -o ./../dist/statez-server ./cmd/statez-server/
+

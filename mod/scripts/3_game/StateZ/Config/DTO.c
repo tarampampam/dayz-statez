@@ -17,11 +17,11 @@ class StateZ_ConfigDTO
 	}
 
 	// Interval in seconds between data collection cycles.
-	int interval = 15;
+	int interval = 5;
 
 	// Delete all JSON files in the data directory on server shutdown.
 	// Set to false to keep the files for inspection after the server stops.
-	bool delete_on_shutdown = false;
+	bool delete_on_shutdown = true;
 
 	// Collection thresholds.
 	ref StateZ_ConfigDTO_Thresholds thresholds;

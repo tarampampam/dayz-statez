@@ -37,4 +37,5 @@ jobs:
         with:
           # renovate: source=github-releases name=golangci/golangci-lint extractVersion=^(?<version>v.+)$
           version: v2.14.0
+          working-directory: ./server
       - run: go test -race -covermode=atomic ./...

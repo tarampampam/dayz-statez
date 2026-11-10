@@ -63,11 +63,11 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 }
 
 // round4 rounds f to at most 4 decimal places, trimming needless precision so the API JSON stays compact.
-func round4(f float64) float64 { return math.Round(f*1e4) / 1e4 }
+func round4(f float64) float64 { return math.Round(f*1e4) / 1e4 } //nolint:mnd // 1e4 = 4-decimal rounding scale
 
 // fill copies the data from mod's data structure to a public data structure, that will be serialized to JSON and
 // sent to the client.
-func fill(src *mod.World, dst *pkg.World) {
+func fill(src *mod.World, dst *pkg.World) { //nolint:funlen
 	if src == nil || dst == nil {
 		return
 	}
@@ -78,7 +78,8 @@ func fill(src *mod.World, dst *pkg.World) {
 	dst.Time.Hour = src.Hour
 	dst.Time.Minute = src.Minute
 
-	switch src.TimeOfDay { // engine daytime phase (0..3) -> human-readable string
+	//nolint:mnd // engine daytime phase (0..3) -> human-readable string
+	switch src.TimeOfDay {
 	case 0:
 		dst.Time.TimeOfDay = "dawn"
 	case 1:
@@ -87,6 +88,8 @@ func fill(src *mod.World, dst *pkg.World) {
 		dst.Time.TimeOfDay = "dusk"
 	case 3:
 		dst.Time.TimeOfDay = "night"
+	default:
+		dst.Time.TimeOfDay = "unknown"
 	}
 
 	dst.Players.Online = src.PlayersOnline

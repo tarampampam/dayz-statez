@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// DataFileName is the name of a file, created by the mod, that contains a JSON snapshot of a specific server state.
 type DataFileName string
 
 const (
@@ -31,6 +32,7 @@ func (b *esBool) UnmarshalJSON(data []byte) error {
 	// empty shit
 	if len(data) == 0 {
 		*b = false
+
 		return nil
 	}
 
@@ -42,6 +44,7 @@ func (b *esBool) UnmarshalJSON(data []byte) error {
 	// bool-like value
 	if v, err := strconv.ParseBool(string(data)); err == nil {
 		*b = esBool(v)
+
 		return nil
 	}
 

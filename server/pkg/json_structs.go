@@ -1,5 +1,7 @@
 package pkg
 
+// Animals is the live wildlife census - count of alive animals per canonical type. Use for population/spawn-balance
+// monitoring and wildlife density dashboards.
 type Animals struct {
 	// ByType maps canonical animal type -> live count, e.g. "wolf", "deer", "cow", "pig", "sheep", "goat", "bear".
 	// Keys are derived from the animal's steak/pelt config, lowercased. Dynamic key set.
@@ -8,6 +10,9 @@ type Animals struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Areas is the active effect areas - static preset gas zones and dynamic toxic/artillery events - each with its
+// type, center position, radius and the number of players currently inside. Use for a live hazard map and
+// player-in-zone alerts.
 type Areas []struct {
 	// Type is the zone type from engine enum eZoneType: "STATIC" (preset gas zones) or "DYNAMIC"
 	// (artillery/toxic events).
@@ -25,6 +30,8 @@ type Areas []struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Events is the cumulative counters (since server start) of engine events keyed by name - session lifecycle, client
+// connect/disconnect, deaths, chat, VON, etc. Use for activity analytics and diagnosing connection/session issues.
 type Events struct {
 	// Events maps event name -> cumulative occurrences since server start. Keys are human-readable engine event names
 	// (e.g. "ClientConnected", "ClientDisconnected", "PlayerDeath", "ChatMessage", "MPSessionStart"), or "unknown_<id>"
@@ -34,7 +41,8 @@ type Events struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Hits is the DTO for HitsFileName file.
+// Hits is the cumulative qualifying hit counts since server start, split into player_hit and creature_hit and broken
+// down by ammo type. Use for combat/weapon-usage analytics.
 type Hits struct {
 	// PlayerHit maps ammo type -> cumulative qualifying hits on players.
 	PlayerHit map[string]int `json:"player_hit"`
@@ -44,6 +52,9 @@ type Hits struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Players is the Snapshot of every online player - identity (steam id, guid, name), character, position, vitals
+// (health/blood/shock/energy/water/toxicity/temperature), state flags (unconscious, restrained, godmode, bleeding,
+// etc.), network and lifetime stats (playtime, distance, kills). Use for a live player map.
 type Players []struct {
 	ID struct {
 		// SteamID is the player's Steam ID (PlayerIdentity.GetPlainId()).
@@ -147,6 +158,8 @@ type Players []struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Territories is the base territory flags - position, remaining refresh-timer fraction and refresh radius. Use to
+// map bases and track which are kept alive vs decaying toward cleanup.
 type Territories []struct {
 	// Pos is the flag's horizontal map-plane position.
 	Pos struct {
@@ -166,6 +179,10 @@ type Territories []struct {
 // --------------------------------------------------------------------------------------------------------------------
 
 type (
+	// Vehicles contains every tracked vehicle - class/type, position, health, crew occupied/capacity, engine, lights,
+	// fuel & radiator-coolant levels, cargo item count and per-part health. Use for a live vehicle map, fleet
+	// condition monitoring and spotting free vs player-claimed cars (empty cargo + full hp + still at a spawn
+	// point = unclaimed).
 	Vehicles []struct {
 		// Hash is a stable non-negative hash of the vehicle's persistent ID (0..2^31-1);
 		// -1 when the persistent ID is unavailable.
@@ -241,6 +258,8 @@ type (
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Weapons is the cumulative shots fired per weapon type, current live weapon-entity counts, and kills grouped by
+// source (players vs creatures). Use for weapon-usage/balance analytics and loot-economy insight.
 type Weapons struct {
 	// Shots maps weapon type -> cumulative shots fired since server start.
 	Shots map[string]int `json:"shots"`
@@ -261,6 +280,10 @@ type Weapons struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// World is the single world snapshot - map name, uptime, in-game clock (hour, minute, time-of-day phase), population
+// counts (players/infected/animals plus cumulative deaths), vehicle counts, loot & entity breakdowns, server FPS,
+// weather, and food/mining/fishing stats.
+// Use for a server status dashboard and performance/weather/economy monitoring.
 type World struct {
 	// MapName is the lowercased world/map name, e.g. "chernarusplus", "enoch".
 	MapName string `json:"map_name"`
@@ -420,6 +443,8 @@ type World struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+// Zombies is the live infected census - counts per canonical type and per AI mind-state (calm, disturbed, alerted,
+// chase, fight, dead). Use for horde-density and AI-activity monitoring and correlating it with server FPS.
 type Zombies struct {
 	// ByType maps canonical infected type -> live count. Keys are derived from the aiAgentTemplate (e.g. "msoldier",
 	// "soldier_heavy", "default_male", "default_female", "military", "runner", or "nbc" for contamination-resistant

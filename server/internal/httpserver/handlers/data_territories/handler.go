@@ -63,7 +63,7 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 }
 
 // round4 rounds f to at most 4 decimal places, trimming needless precision so the API JSON stays compact.
-func round4(f float64) float64 { return math.Round(f*1e4) / 1e4 }
+func round4(f float64) float64 { return math.Round(f*1e4) / 1e4 } //nolint:mnd // 1e4 = 4-decimal rounding scale
 
 // fill copies the data from mod's data structure to a public data structure, that will be serialized to JSON and
 // sent to the client.

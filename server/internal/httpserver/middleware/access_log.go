@@ -54,13 +54,13 @@ func NewAccessLog(
 			now := time.Now()
 			rw := &accessLogResponseWriter{orig: w}
 
-			defer func() {
+			defer func(ctx context.Context) {
 				status := int(rw.Status.Load())
 				if status == 0 {
 					status = http.StatusOK
 				}
 
-				log.LogAttrs(r.Context(), lvl, "HTTP request processed",
+				log.LogAttrs(ctx, lvl, "HTTP request processed",
 					slog.Duration("duration", time.Since(now).Round(time.Microsecond)),
 					slog.Int("status_code", status),
 					slog.Int64("response_size", rw.Size.Load()),
@@ -70,7 +70,7 @@ func NewAccessLog(
 					slog.String("host", r.Host),
 					slog.String("remote_addr", r.RemoteAddr),
 				)
-			}()
+			}(r.Context())
 
 			next.ServeHTTP(rw, r)
 		})

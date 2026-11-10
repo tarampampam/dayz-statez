@@ -22,7 +22,8 @@ import (
 	"server/internal/mod"
 )
 
-func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler {
+// NewHandler creates the main HTTP handler for the server.
+func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler { //nolint:funlen
 	mux := http.NewServeMux()
 
 	auth := func() func(h http.HandlerFunc) http.HandlerFunc {

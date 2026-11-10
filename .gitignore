@@ -4,6 +4,7 @@
 
 ## AI shit
 /.copilot
+/.github/copilot*
 /.cursor
 /.claude
 /.windsurf

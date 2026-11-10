@@ -55,5 +55,5 @@ func tokenFromRequest(r *http.Request) string {
 		}
 	}
 
-	return r.Header.Get("X-API-Key")
+	return r.Header.Get("X-Api-Key")
 }

@@ -50,3 +50,8 @@ jobs:
       - run: sudo apt-get update
       - run: sudo apt-get install --no-install-recommends --yes libvorbisenc2
       - run: make dist/mod
+      - run: zip -r -X ../mod.zip ./*
+        working-directory: ./dist/mod
+      - run: tar --create --gzip --file=../mod.tar.gz --mtime='@0' --owner=0 --group=0 --mode='u=rwX,go=rX' ./*
+        working-directory: ./dist/mod
+      - run: ls -lah

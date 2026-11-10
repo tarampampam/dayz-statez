@@ -128,6 +128,8 @@ Wants=network-online.target
 #Wants=dayz.service # start DayZ together with StateZ; a DayZ failure does not stop StateZ
 #PartOf=dayz.service # stop/restart StateZ when DayZ is stopped/restarted; one-way, does not start DayZ
 #Requires=dayz.service # fails StateZ start if DayZ fails to start
+
+[Service]
 User=dayz
 Group=dayz
 EnvironmentFile=/etc/statez-server/.env
@@ -143,7 +145,6 @@ Start the service:
 ```bash
 root$ systemctl daemon-reload
 root$ systemctl enable --now statez-server
-root$ ss -ltnp | grep 12301 # use your port
 root$ systemctl status statez-server
 root$ journalctl -u statez-server -n 50 --no-pager
 ```
@@ -151,6 +152,7 @@ root$ journalctl -u statez-server -n 50 --no-pager
 Check it (use the token and port you configured in `.env`):
 
 ```bash
+root$ ss -ltnp | grep 12301 # use your port
 nobody$ curl -i http://127.0.0.1:12301/healthz
 nobody$ curl -i -H "Authorization: Bearer !!!CHANGE_ME!!!" http://127.0.0.1:12301/world
 ```

@@ -47,17 +47,21 @@ flowchart LR
 The mod is server-side only. **Clients need nothing installed**.
 
 Download [`mod.tar.gz`](https://github.com/tarampampam/dayz-statez/releases/latest/download/mod.tar.gz)
-from the latest release and unpack it into the DayZ server directory:
+from the latest release and unpack it into the DayZ server directory as the operating-system **user that runs DayZ**.
+Replace `dayz` below with that user. Switch to that user, then run the following commands:
 
 ```bash
-curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/mod.tar.gz
-tar -xzf mod.tar.gz -C /path/to/dayz-server
+root$ su - dayz
+dayz$ cd /path/to/dayz-server
+dayz$ curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/mod.tar.gz
+dayz$ tar -xzf ./mod.tar.gz
+dayz$ rm ./mod.tar.gz
 ```
 
-The archive creates `/path/to/dayz-server/@statez`. Start the server with `-serverMod=@statez`:
+The archive creates `/path/to/dayz-server/@statez`. Start the server with `-serverMod=@statez` (under the same user):
 
 ```bash
-cd /path/to/dayz-server && ./DayZServer -config=serverDZ.cfg -serverMod=@statez
+dayz$ ./DayZServer -config=serverDZ.cfg -serverMod=@statez
 ```
 
 Notes:
@@ -94,40 +98,24 @@ so step 2 is the only way to remove that file.
 Run the following as root to download the Linux `amd64` server archive, extract it, and install the binary:
 
 ```bash
-curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/statez-server-linux-amd64.tar.gz
-tar -xzf statez-server-linux-amd64.tar.gz
-install -m 0755 statez-server /usr/local/bin/statez-server
+root$ curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/statez-server-linux-amd64.tar.gz
+root$ tar -xzf ./statez-server-linux-amd64.tar.gz
+root$ install -o root -g root -m 0755 ./statez-server /usr/local/bin/statez-server
+root$ rm ./statez-server-linux-amd64.tar.gz
 ```
 
-Then create the system user and config file:
+Create the config file as **root**. Replace `dayz` with the operating-system user that runs the DayZ server:
 
 ```bash
-useradd --system --no-create-home --shell /usr/sbin/nologin statez
-install -d -m 0755 /etc/statez-server
-echo 'STATEZ_SERVER_MOD_DATA_DIR=/path/to/statez/data' > /etc/statez-server/.env
-echo 'STATEZ_SERVER_API_TOKEN=!!!CHANGE_ME!!!' >> /etc/statez-server/.env
-chown root:statez /etc/statez-server/.env
-chmod 0640 /etc/statez-server/.env
+root$ install -d -m 0755 /etc/statez-server
+root$ echo 'STATEZ_SERVER_LISTEN=0.0.0.0:12301' > /etc/statez-server/.env # change port if needed
+root$ echo 'STATEZ_SERVER_MOD_DATA_DIR=/path/to/statez/data' >> /etc/statez-server/.env # with `.../data` at the end
+root$ echo 'STATEZ_SERVER_API_TOKEN=!!!CHANGE_ME!!!' >> /etc/statez-server/.env
+root$ chmod 0600 /etc/statez-server/.env
 ```
 
-`$profile:statez/data` is `/path/to/statez/data` on disk. The `statez` user needs read access to that
-directory and traverse (`x`) access to its parent directories. After the mod has created `$profile:statez`, grant
-the `statez` group access to it:
-
-```bash
-chgrp -R statez /path/to/statez
-chmod -R g+rX /path/to/statez
-chmod g+s /path/to/statez/data
-```
-
-The set-group-ID bit makes new snapshots inherit the `statez` group.
-
-Check that `statez` can read the data:
-
-```bash
-runuser -u statez -- ls -l /path/to/statez/data
-runuser -u statez -- cat /path/to/statez/data/world.json
-```
+Since we're running API runs as the DayZ user, it has access to the snapshots without any additional ownership or
+permission changes.
 
 Create the unit file `/etc/systemd/system/statez-server.service`:
 
@@ -140,8 +128,8 @@ Wants=network-online.target
 #Wants=dayz.service # start DayZ together with StateZ; a DayZ failure does not stop StateZ
 #PartOf=dayz.service # stop/restart StateZ when DayZ is stopped/restarted; one-way, does not start DayZ
 #Requires=dayz.service # fails StateZ start if DayZ fails to start
-User=statez
-Group=statez
+User=dayz
+Group=dayz
 EnvironmentFile=/etc/statez-server/.env
 ExecStart=/usr/local/bin/statez-server
 Restart=on-failure
@@ -153,17 +141,18 @@ WantedBy=multi-user.target
 Start the service:
 
 ```bash
-systemctl daemon-reload
-systemctl enable --now statez-server
-systemctl status statez-server
-journalctl -u statez-server -n 50 --no-pager
+root$ systemctl daemon-reload
+root$ systemctl enable --now statez-server
+root$ ss -ltnp | grep 12301 # use your port
+root$ systemctl status statez-server
+root$ journalctl -u statez-server -n 50 --no-pager
 ```
 
-Check it (use the token from `.env`):
+Check it (use the token and port you configured in `.env`):
 
 ```bash
-curl -i http://127.0.0.1:8080/healthz
-curl -i -H "Authorization: Bearer !!!CHANGE_ME!!!" http://127.0.0.1:8080/world
+nobody$ curl -i http://127.0.0.1:12301/healthz
+nobody$ curl -i -H "Authorization: Bearer !!!CHANGE_ME!!!" http://127.0.0.1:12301/world
 ```
 
 ### Logs
@@ -171,8 +160,8 @@ curl -i -H "Authorization: Bearer !!!CHANGE_ME!!!" http://127.0.0.1:8080/world
 Logs go to journald:
 
 ```bash
-journalctl -u statez-server -f
-journalctl -u statez-server --since "1 hour ago" --no-pager
+root$ journalctl -u statez-server -f
+root$ journalctl -u statez-server --since "1 hour ago" --no-pager
 ```
 
 Log size is limited by journald settings, not by StateZ. See `journald.conf(5)`, for example `SystemMaxUse=` in
@@ -181,11 +170,10 @@ Log size is limited by journald settings, not by StateZ. See `journald.conf(5)`,
 ### Uninstalling
 
 ```bash
-systemctl disable --now statez-server
-rm /etc/systemd/system/statez-server.service /usr/local/bin/statez-server
-rm -r /etc/statez-server
-systemctl daemon-reload
-userdel statez
+root$ systemctl disable --now statez-server
+root$ rm /etc/systemd/system/statez-server.service /usr/local/bin/statez-server
+root$ rm -r /etc/statez-server
+root$ systemctl daemon-reload
 ```
 
 ## Server configuration
@@ -226,7 +214,7 @@ Response headers on data endpoints: `X-Cache-Hit` (served from cache), `Last-Mod
 Example:
 
 ```bash
-curl -s -H "Authorization: Bearer $STATEZ_TOKEN" http://127.0.0.1:8080/world
+nobody$ curl -s -H "Authorization: Bearer !!!CHANGE_ME!!!" http://127.0.0.1:12301/world
 ```
 
 ## Licence

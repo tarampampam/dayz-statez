@@ -85,6 +85,7 @@ class StateZ_WorldSnapshot
 
 	// metadata
 	string world;
+	string server_version; // engine/exe build, e.g. "1.30.164289.70"
 
 	// timing
 	float uptime_seconds;

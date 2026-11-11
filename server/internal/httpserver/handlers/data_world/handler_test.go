@@ -22,8 +22,8 @@ func TestNew_ok(t *testing.T) {
 
 	// time_of_day 1 -> "day"; uptime 205.5 -> int 205; temperature 9.481267 -> round4 9.4813.
 	fsys := fstest.MapFS{"world.json": {Data: []byte(
-		`{"world":"chernarusplus","uptime_seconds":205.5,"hour":8,"minute":33,"time_of_day":1,` +
-			`"weather":{"temperature":9.481267}}`,
+		`{"world":"chernarusplus","server_version":"1.30.164289.70","uptime_seconds":205.5,"hour":8,"minute":33,` +
+			`"time_of_day":1,"weather":{"temperature":9.481267}}`,
 	), ModTime: testMtime}}
 
 	h := data_world.New(mod.OpenDataDir(fsys), slog.New(slog.DiscardHandler))
@@ -36,6 +36,7 @@ func TestNew_ok(t *testing.T) {
 
 	var got struct {
 		MapName       string `json:"map_name"`
+		ServerVersion string `json:"server_version"`
 		UptimeSeconds int    `json:"uptime_seconds"`
 		Time          struct {
 			Hour      int    `json:"hour"`
@@ -49,6 +50,7 @@ func TestNew_ok(t *testing.T) {
 	assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &got))
 
 	assert.Equal(t, "chernarusplus", got.MapName)
+	assert.Equal(t, "1.30.164289.70", got.ServerVersion)
 	assert.Equal(t, 205, got.UptimeSeconds)
 	assert.Equal(t, 8, got.Time.Hour)
 	assert.Equal(t, 33, got.Time.Minute)

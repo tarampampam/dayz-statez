@@ -73,6 +73,7 @@ func fill(src *mod.World, dst *pkg.World) { //nolint:funlen
 	}
 
 	dst.MapName = src.World
+	dst.ServerVersion = src.ServerVersion
 	dst.UptimeSeconds = int(src.UptimeSeconds)
 
 	dst.Time.Hour = src.Hour

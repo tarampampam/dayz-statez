@@ -298,6 +298,8 @@ type (
 	World struct {
 		// World is the lowercased world/map name, e.g. "chernarusplus", "enoch".
 		World string `json:"world"`
+		// ServerVersion is the DayZ server engine/exe build, e.g. "1.30.164289.70".
+		ServerVersion string `json:"server_version"`
 
 		// UptimeSeconds is server process uptime in seconds (engine tick time).
 		UptimeSeconds float64 `json:"uptime_seconds"`

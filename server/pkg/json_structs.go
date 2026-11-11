@@ -287,6 +287,8 @@ type Weapons struct {
 type World struct {
 	// MapName is the lowercased world/map name, e.g. "chernarusplus", "enoch".
 	MapName string `json:"map_name"`
+	// ServerVersion is the DayZ server engine/exe build, e.g. "1.30.164289.70".
+	ServerVersion string `json:"server_version"`
 	// UptimeSeconds is server process uptime in seconds (engine tick time).
 	UptimeSeconds int `json:"uptime_seconds"`
 

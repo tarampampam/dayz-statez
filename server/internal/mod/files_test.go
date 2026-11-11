@@ -50,7 +50,7 @@ func TestDTO_Decode(t *testing.T) {
 		want any
 	}{
 		"world": {worldJSON, mod.World{
-			World: "chernarusplus", UptimeSeconds: 205.5, Hour: 8, Minute: 33, TimeOfDay: 1,
+			World: "chernarusplus", ServerVersion: "1.30.164289.70", UptimeSeconds: 205.5, Hour: 8, Minute: 33, TimeOfDay: 1,
 			MaxPlayers: 2, Infected: 48, InfectedDead: 3, Animals: 163, PathGraphUpdates: 80,
 			Weapons: 901, Suppressors: 71, Optics: 468, AmmoBoxes: 365, Magazines: 763, Ammo: 1366, Explosives: 142,
 			Items: 22712, Bottles: 311, Clothes: 8656, Boxes: 150, Cars: 43, Boats: 17,

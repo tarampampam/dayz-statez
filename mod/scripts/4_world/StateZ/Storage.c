@@ -237,6 +237,10 @@ class StateZ_Storage
 		wn.ToLower();
 		snap.world = wn;
 
+		string ver;
+		g_Game.GetVersion(ver);
+		snap.server_version = ver;
+
 		snap.uptime_seconds = s_ServerUptimeSec;
 		snap.hour = s_Hour;
 		snap.minute = s_Minute;

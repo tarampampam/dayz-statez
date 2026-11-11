@@ -20,12 +20,14 @@ type evnVar string
 // String returns the string representation of the environment variable.
 func (e evnVar) String() string { return string(e) }
 
-// OverrideIfExists overrides the value of the provided destination string pointer with the value of the
-// environment variable if it exists.
-func (e evnVar) OverrideIfExists(dest *string) {
-	if v, ok := os.LookupEnv(string(e)); ok {
-		*dest = v
+// envOr returns the value of the named environment variable if it is set, otherwise the provided fallback.
+// It is used to seed flag defaults so the resulting priority is: default < env < flag.
+func envOr(name evnVar, fallback string) string {
+	if v, ok := os.LookupEnv(name.String()); ok {
+		return v
 	}
+
+	return fallback
 }
 
 const (
@@ -74,32 +76,32 @@ func (a *App) Run(ctx context.Context, args []string) error { //nolint:funlen
 	flags.StringVar(
 		&hostPort,
 		"listen",
-		"0.0.0.0:8080",
+		envOr(envListen, "0.0.0.0:8080"),
 		"Host and port to run the server on [$"+envListen.String()+"]",
 	)
 	flags.StringVar(
 		&modDataDir,
 		"mod-data-dir",
-		"/nonexistent",
+		envOr(envModDataDir, "/nonexistent"),
 		"REQUIRED. Path to the directory where the StateZ mod stores its data [$"+envModDataDir.String()+"]",
 	)
 	flags.StringVar(
 		&apiToken,
 		"api-token",
-		"",
+		envOr(envAPIToken, ""),
 		"Bearer token required to access the data endpoints (empty value disables authentication) "+
 			"[$"+envAPIToken.String()+"]",
 	)
 	flags.StringVar(
 		&tlsCertFile,
 		"tls-cert",
-		"",
+		envOr(envTLSCertFile, ""),
 		"Path to the TLS certificate file for HTTPS (enables HTTPS if provided) [$"+envTLSCertFile.String()+"]",
 	)
 	flags.StringVar(
 		&tlsKeyFile,
 		"tls-key",
-		"",
+		envOr(envTLSKeyFile, ""),
 		"Path to the TLS private key file [$"+envTLSKeyFile.String()+"]",
 	)
 
@@ -107,13 +109,6 @@ func (a *App) Run(ctx context.Context, args []string) error { //nolint:funlen
 	if err := flags.Parse(args); err != nil {
 		return err
 	}
-
-	// override flag values with environment variables if they exist
-	envListen.OverrideIfExists(&hostPort)
-	envModDataDir.OverrideIfExists(&modDataDir)
-	envAPIToken.OverrideIfExists(&apiToken)
-	envTLSCertFile.OverrideIfExists(&tlsCertFile)
-	envTLSKeyFile.OverrideIfExists(&tlsKeyFile)
 
 	// validate the provided host and port
 	host, port, hostPortErr := net.SplitHostPort(hostPort)

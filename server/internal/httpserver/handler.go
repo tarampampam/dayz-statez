@@ -23,6 +23,12 @@ import (
 )
 
 // NewHandler creates the main HTTP handler for the server.
+//
+// IMPORTANT: this handler is the server side of the public HTTP API client in pkg/api (gh.tarampamp.am/dayz-statez/
+// server/pkg/api). Anything the client depends on - request/error handling logic, returned status codes, the handler
+// URLs (routes) and the response data formats - MUST be kept in sync with that client. Prefer backwards-compatible
+// changes - adding new endpoints or optional fields is safe, while renaming/removing routes or fields, repurposing
+// status codes or changing payload shapes will break existing client builds and any third parties using them.
 func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler { //nolint:funlen
 	mux := http.NewServeMux()
 
@@ -47,6 +53,8 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 		weaponsRoute     = "/weapons"
 		worldRoute       = "/world"
 		zombiesRoute     = "/zombies"
+
+		// TODO: add a public handler with very common server info (map name, uptime, server FPS, weather, time).
 
 		healthRoute = "/healthz"
 	)

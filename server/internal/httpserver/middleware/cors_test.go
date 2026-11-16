@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"server/internal/httpserver/middleware"
-	"server/internal/testutil/assert"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/middleware"
+	"gh.tarampamp.am/dayz-statez/server/internal/testutil/assert"
 )
 
 func TestCORS(t *testing.T) {

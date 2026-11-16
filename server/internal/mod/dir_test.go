@@ -7,8 +7,8 @@ import (
 	"testing/fstest"
 	"time"
 
-	"server/internal/mod"
-	"server/internal/testutil/assert"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/internal/testutil/assert"
 )
 
 // mapFile builds an in-memory file with an explicit mtime.

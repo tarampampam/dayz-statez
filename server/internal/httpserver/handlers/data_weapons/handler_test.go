@@ -10,9 +10,9 @@ import (
 	"testing/fstest"
 	"time"
 
-	"server/internal/httpserver/handlers/data_weapons"
-	"server/internal/mod"
-	"server/internal/testutil/assert"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_weapons"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/internal/testutil/assert"
 )
 
 var testMtime = time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)

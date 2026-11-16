@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"server/internal/httpserver"
-	"server/internal/testutil/assert"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver"
+	"gh.tarampamp.am/dayz-statez/server/internal/testutil/assert"
 )
 
 func TestNew(t *testing.T) {

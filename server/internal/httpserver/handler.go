@@ -6,20 +6,20 @@ import (
 	"net/http"
 	"strings"
 
-	"server/internal/httpserver/handlers/data_animals"
-	"server/internal/httpserver/handlers/data_areas"
-	"server/internal/httpserver/handlers/data_events"
-	"server/internal/httpserver/handlers/data_hits"
-	"server/internal/httpserver/handlers/data_players"
-	"server/internal/httpserver/handlers/data_territories"
-	"server/internal/httpserver/handlers/data_vehicles"
-	"server/internal/httpserver/handlers/data_weapons"
-	"server/internal/httpserver/handlers/data_world"
-	"server/internal/httpserver/handlers/data_zombies"
-	"server/internal/httpserver/handlers/healthz"
-	"server/internal/httpserver/handlers/not_found"
-	"server/internal/httpserver/middleware"
-	"server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_animals"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_areas"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_events"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_hits"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_players"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_territories"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_vehicles"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_weapons"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_world"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_zombies"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/healthz"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/not_found"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/middleware"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
 )
 
 // NewHandler creates the main HTTP handler for the server.
@@ -81,7 +81,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 			"performance/weather/economy monitoring",
 		zombiesRoute: "Live infected census - counts per canonical type and per AI mind-state (calm, disturbed, " +
 			"alerted, chase, fight, dead). Use for horde-density and AI-activity monitoring and correlating it with " +
-			"server FPS",
+			"gh.tarampamp.am/dayz-statez/server FPS",
 		healthRoute: "Liveness probe - always returns 200",
 	})
 	if jErr != nil {

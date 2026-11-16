@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"server/internal/httpserver"
-	"server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
 )
 
 type evnVar string

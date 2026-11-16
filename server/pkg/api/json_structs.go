@@ -1,4 +1,4 @@
-package pkg
+package api
 
 // Animals is the live wildlife census - count of alive animals per canonical type. Use for population/spawn-balance
 // monitoring and wildlife density dashboards.
@@ -288,7 +288,7 @@ type World struct {
 	// MapName is the lowercased world/map name, e.g. "chernarusplus", "enoch".
 	MapName string `json:"map_name"`
 	// ServerVersion is the DayZ server engine/exe build, e.g. "1.30.164289.70".
-	ServerVersion string `json:"server_version"`
+	ServerVersion string `json:"gh.tarampamp.am/dayz-statez/server_version"`
 	// UptimeSeconds is server process uptime in seconds (engine tick time).
 	UptimeSeconds int `json:"uptime_seconds"`
 

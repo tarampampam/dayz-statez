@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"server/internal/mod"
-	"server/internal/testutil/assert"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/internal/testutil/assert"
 )
 
 var (
@@ -172,7 +172,7 @@ func TestDTO_Decode(t *testing.T) {
 			"NetworkManagerClient": 1, "NetworkManagerServer": 1, "DialogQueued": 1, "ChatMessage": 1, "ChatChannel": 1,
 			"ClientConnected": 1, "ClientPrepare": 1, "ClientNew": 1, "ClientNewReady": 1, "ClientReSpawn": 1,
 			"ClientReconnect": 1, "ClientReady": 1, "ClientDisconnected": 1, "ClientRemoved": 1,
-			"ConnectivityStatsUpdated": 1, "ServerFpsStatsUpdated": 1,
+			"ConnectivityStatsUpdated": 1, "gh.tarampamp.am/dayz-statez/serverFpsStatsUpdated": 1,
 			"LogoutCancel": 1, "LoginTime": 1, "Respawn": 1, "Preload": 1, "Logout": 1, "LoginStatus": 1,
 			"VONState": 1, "VONStartSpeaking": 1, "VONStopSpeaking": 1, "VONStartedTransmitting": 1, "VONStoppedTransmitting": 1,
 			"PartyChatStatusChanged": 1, "DLCOwnerShipFailed": 1, "SetFreeCamera": 1,

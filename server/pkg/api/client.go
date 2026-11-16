@@ -233,6 +233,21 @@ func (c *Client) Zombies(ctx context.Context) (*Zombies, error) {
 	return clientDecodeBody[Zombies](resp.Body)
 }
 
+// Status fetches the public server/world status summary from the "/status" endpoint.
+func (c *Client) Status(ctx context.Context) (*Status, error) {
+	resp, respErr := c.do(ctx, "/status", http.NoBody)
+	if respErr != nil {
+		return nil, respErr
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if err := clientCheckResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return clientDecodeBody[Status](resp.Body)
+}
+
 // do builds and performs a GET request against the configured base URL, attaching the bearer auth token when set.
 func (c *Client) do(ctx context.Context, path string, body io.Reader) (*http.Response, error) {
 	req, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, c.baseUrl+path, body)

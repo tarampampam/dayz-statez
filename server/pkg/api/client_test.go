@@ -49,6 +49,7 @@ func TestClient(t *testing.T) {
 			"weapons":     {func(c context.Context, a *api.Client) (any, error) { return a.Weapons(c) }, `{}`},
 			"world":       {func(c context.Context, a *api.Client) (any, error) { return a.World(c) }, `{}`},
 			"zombies":     {func(c context.Context, a *api.Client) (any, error) { return a.Zombies(c) }, `{}`},
+			"status":      {func(c context.Context, a *api.Client) (any, error) { return a.Status(c) }, `{}`},
 		} {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()

@@ -18,6 +18,7 @@ import (
 	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_zombies"
 	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/healthz"
 	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/not_found"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/status"
 	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/middleware"
 	"gh.tarampamp.am/dayz-statez/server/internal/mod"
 )
@@ -53,8 +54,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 		weaponsRoute     = "/weapons"
 		worldRoute       = "/world"
 		zombiesRoute     = "/zombies"
-
-		// TODO: add a public handler with very common server info (map name, uptime, server FPS, weather, time).
+		statusRoute      = "/status"
 
 		healthRoute = "/healthz"
 	)
@@ -90,6 +90,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 		zombiesRoute: "Live infected census - counts per canonical type and per AI mind-state (calm, disturbed, " +
 			"alerted, chase, fight, dead). Use for horde-density and AI-activity monitoring and correlating it with " +
 			"server FPS",
+		statusRoute: "Short game/world status - version, players online/max, uptime, in-game time, weather",
 		healthRoute: "Liveness probe - always returns 200",
 	})
 	if jErr != nil {
@@ -114,6 +115,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 	mux.HandleFunc("GET "+worldRoute, auth(data_world.New(dd, log)))
 	mux.HandleFunc("GET "+zombiesRoute, auth(data_zombies.New(dd, log)))
 
+	mux.HandleFunc("GET "+statusRoute, status.New(dd, log)) // NOTE: public (without auth)
 	mux.HandleFunc("GET "+healthRoute, healthz.Handler)
 	mux.HandleFunc("/", not_found.Handler)
 

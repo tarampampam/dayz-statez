@@ -18,7 +18,7 @@ type mockHTTPClient struct {
 	err  error
 }
 
-func (m mockHTTPClient) Do(*http.Request) (*http.Response, error) { return m.resp, m.err }
+func (m mockHTTPClient) Do(*http.Request) (*http.Response, error) { return m.resp, m.err } //nolint:nilnil
 
 // newResponse builds an [http.Response] with the given status code and body.
 func newResponse(code int, body string) *http.Response {
@@ -53,7 +53,11 @@ func TestClient(t *testing.T) {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
 
-				client := api.NewClient("", "", api.WithHTTPClient(mockHTTPClient{resp: newResponse(http.StatusOK, tt.body)}))
+				client := api.NewClient(
+					"",
+					"",
+					api.WithHTTPClient(mockHTTPClient{resp: newResponse(http.StatusOK, tt.body)}), //nolint:bodyclose
+				)
 
 				result, err := tt.call(context.Background(), client)
 
@@ -78,7 +82,11 @@ func TestClient(t *testing.T) {
 			t.Run(name, func(t *testing.T) {
 				t.Parallel()
 
-				client := api.NewClient("", "", api.WithHTTPClient(mockHTTPClient{resp: newResponse(tt.giveCode, tt.giveBody)}))
+				client := api.NewClient(
+					"",
+					"",
+					api.WithHTTPClient(mockHTTPClient{resp: newResponse(tt.giveCode, tt.giveBody)}), //nolint:bodyclose
+				)
 
 				result, err := client.Animals(context.Background())
 
@@ -98,7 +106,11 @@ func TestClient(t *testing.T) {
 	t.Run("unexpected status", func(t *testing.T) {
 		t.Parallel()
 
-		client := api.NewClient("", "", api.WithHTTPClient(mockHTTPClient{resp: newResponse(http.StatusInternalServerError, "")}))
+		client := api.NewClient(
+			"",
+			"",
+			api.WithHTTPClient(mockHTTPClient{resp: newResponse(http.StatusInternalServerError, "")}), //nolint:bodyclose
+		)
 
 		result, err := client.Animals(context.Background())
 
@@ -109,7 +121,11 @@ func TestClient(t *testing.T) {
 	t.Run("decode error", func(t *testing.T) {
 		t.Parallel()
 
-		client := api.NewClient("", "", api.WithHTTPClient(mockHTTPClient{resp: newResponse(http.StatusOK, `not a json`)}))
+		client := api.NewClient(
+			"",
+			"",
+			api.WithHTTPClient(mockHTTPClient{resp: newResponse(http.StatusOK, `not a json`)}), //nolint:bodyclose
+		)
 
 		result, err := client.Animals(context.Background())
 

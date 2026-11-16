@@ -31,7 +31,9 @@ type httpClient interface {
 type ClientOption func(*Client)
 
 // WithHTTPClient overrides the underlying HTTP client used to perform requests.
-func WithHTTPClient(c httpClient) ClientOption { return func(client *Client) { client.c = c } }
+func WithHTTPClient(c httpClient) ClientOption { //nolint:iface
+	return func(client *Client) { client.c = c }
+}
 
 // WithInsecureTLS disables TLS certificate verification on the default HTTP client. It has no effect when a custom
 // client is supplied via [WithHTTPClient] or when the transport is not an [http.Transport].
@@ -45,7 +47,7 @@ func WithInsecureTLS() ClientOption {
 					tr.TLSClientConfig = &tls.Config{}
 				}
 
-				tr.TLSClientConfig.InsecureSkipVerify = true //nolint:gosec
+				tr.TLSClientConfig.InsecureSkipVerify = true
 			}
 		}
 	}
@@ -63,11 +65,11 @@ type Client struct {
 func NewClient(baseUrl, authToken string, opts ...ClientOption) *Client {
 	client := &Client{
 		c: &http.Client{
-			Timeout: 30 * time.Second,
+			Timeout: 30 * time.Second, //nolint:mnd
 			Transport: &http.Transport{
 				ForceAttemptHTTP2:     true,
-				ResponseHeaderTimeout: 10 * time.Second,
-				IdleConnTimeout:       90 * time.Second,
+				ResponseHeaderTimeout: 10 * time.Second, //nolint:mnd
+				IdleConnTimeout:       90 * time.Second, //nolint:mnd
 			},
 		},
 		baseUrl:   strings.TrimSpace(strings.TrimRight(baseUrl, "/")),
@@ -83,7 +85,7 @@ func NewClient(baseUrl, authToken string, opts ...ClientOption) *Client {
 
 // Animals fetches the currently tracked animals from the "/animals" endpoint.
 func (c *Client) Animals(ctx context.Context) (*Animals, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/animals", http.NoBody)
+	resp, respErr := c.do(ctx, "/animals", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -98,7 +100,7 @@ func (c *Client) Animals(ctx context.Context) (*Animals, error) {
 
 // Areas fetches the defined map areas from the "/areas" endpoint.
 func (c *Client) Areas(ctx context.Context) (*Areas, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/areas", http.NoBody)
+	resp, respErr := c.do(ctx, "/areas", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -113,7 +115,7 @@ func (c *Client) Areas(ctx context.Context) (*Areas, error) {
 
 // Events fetches the recorded game events from the "/events" endpoint.
 func (c *Client) Events(ctx context.Context) (*Events, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/events", http.NoBody)
+	resp, respErr := c.do(ctx, "/events", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -128,7 +130,7 @@ func (c *Client) Events(ctx context.Context) (*Events, error) {
 
 // Hits fetches the recorded hits from the "/hits" endpoint.
 func (c *Client) Hits(ctx context.Context) (*Hits, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/hits", http.NoBody)
+	resp, respErr := c.do(ctx, "/hits", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -143,7 +145,7 @@ func (c *Client) Hits(ctx context.Context) (*Hits, error) {
 
 // Players fetches the currently tracked players from the "/players" endpoint.
 func (c *Client) Players(ctx context.Context) (*Players, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/players", http.NoBody)
+	resp, respErr := c.do(ctx, "/players", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -158,7 +160,7 @@ func (c *Client) Players(ctx context.Context) (*Players, error) {
 
 // Territories fetches the defined territories from the "/territories" endpoint.
 func (c *Client) Territories(ctx context.Context) (*Territories, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/territories", http.NoBody)
+	resp, respErr := c.do(ctx, "/territories", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -173,7 +175,7 @@ func (c *Client) Territories(ctx context.Context) (*Territories, error) {
 
 // Vehicles fetches the currently tracked vehicles from the "/vehicles" endpoint.
 func (c *Client) Vehicles(ctx context.Context) (*Vehicles, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/vehicles", http.NoBody)
+	resp, respErr := c.do(ctx, "/vehicles", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -188,7 +190,7 @@ func (c *Client) Vehicles(ctx context.Context) (*Vehicles, error) {
 
 // Weapons fetches the weapon usage statistics from the "/weapons" endpoint.
 func (c *Client) Weapons(ctx context.Context) (*Weapons, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/weapons", http.NoBody)
+	resp, respErr := c.do(ctx, "/weapons", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -203,7 +205,7 @@ func (c *Client) Weapons(ctx context.Context) (*Weapons, error) {
 
 // World fetches the current world state from the "/world" endpoint.
 func (c *Client) World(ctx context.Context) (*World, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/world", http.NoBody)
+	resp, respErr := c.do(ctx, "/world", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -218,7 +220,7 @@ func (c *Client) World(ctx context.Context) (*World, error) {
 
 // Zombies fetches the currently tracked zombies from the "/zombies" endpoint.
 func (c *Client) Zombies(ctx context.Context) (*Zombies, error) {
-	resp, respErr := c.do(ctx, http.MethodGet, "/zombies", http.NoBody)
+	resp, respErr := c.do(ctx, "/zombies", http.NoBody)
 	if respErr != nil {
 		return nil, respErr
 	}
@@ -231,9 +233,9 @@ func (c *Client) Zombies(ctx context.Context) (*Zombies, error) {
 	return clientDecodeBody[Zombies](resp.Body)
 }
 
-// do builds and performs an HTTP request against the configured base URL, attaching the bearer auth token when set.
-func (c *Client) do(ctx context.Context, method, path string, body io.Reader) (*http.Response, error) {
-	req, reqErr := http.NewRequestWithContext(ctx, method, c.baseUrl+path, body)
+// do builds and performs a GET request against the configured base URL, attaching the bearer auth token when set.
+func (c *Client) do(ctx context.Context, path string, body io.Reader) (*http.Response, error) {
+	req, reqErr := http.NewRequestWithContext(ctx, http.MethodGet, c.baseUrl+path, body)
 	if reqErr != nil {
 		return nil, reqErr
 	}

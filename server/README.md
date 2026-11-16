@@ -6,7 +6,7 @@ Flag values have the highest priority, then environment variables, and finally d
 |-----------------|------------------------------|------------------|----------------------------------------------------------------|
 | `-listen`       | `STATEZ_SERVER_LISTEN`       | `0.0.0.0:8080`   | Address to listen on                                           |
 | `-mod-data-dir` | `STATEZ_SERVER_MOD_DATA_DIR` | required         | The mod's `$profile:statez/data/` directory                    |
-| `-api-token`    | `STATEZ_SERVER_API_TOKEN`    | empty (auth off) | Token for all endpoints except `/healthz`                      |
+| `-api-token`    | `STATEZ_SERVER_API_TOKEN`    | empty (auth off) | Token for all endpoints except `/`, `/status` and `/healthz`   |
 | `-tls-cert`     | `STATEZ_SERVER_TLS_CERT`     | empty            | Certificate file. Set together with `--tls-key` to serve HTTPS |
 | `-tls-key`      | `STATEZ_SERVER_TLS_KEY`      | empty            | Private key file                                               |
 
@@ -15,7 +15,7 @@ Flag values have the highest priority, then environment variables, and finally d
 All endpoints are `GET` and return JSON. Each one returns the latest snapshot written by the mod. Send the token as
 `Authorization: Bearer <token>` or `X-API-Key: <token>`.
 
-`/healthz` and `/` endpoints do not need a token.
+`/`, `/status` and `/healthz` endpoints do not need a token.
 
 | Endpoint       | Returns                                                                                                                                        |
 |----------------|------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -30,6 +30,7 @@ All endpoints are `GET` and return JSON. Each one returns the latest snapshot wr
 | `/weapons`     | Shots per weapon type, live weapon entity counts, kills by source                                                                              |
 | `/world`       | Map name, uptime, in-game clock, population counts, vehicle counts, loot and entity breakdowns, server FPS, weather, food/mining/fishing stats |
 | `/zombies`     | Infected count per type and per AI state (calm, disturbed, alerted, chase, fight, dead)                                                        |
+| `/status`      | Public (no token). Short world/server summary - version, players online/max, uptime, in-game time, weather                                     |
 | `/healthz`     | Liveness probe, always `200`                                                                                                                   |
 
 Response headers on data endpoints: `X-Cache-Hit` (served from cache), `Last-Modified` (mod file time), and

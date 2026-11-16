@@ -1,4 +1,4 @@
-package pkg
+package api
 
 // Animals is the live wildlife census - count of alive animals per canonical type. Use for population/spawn-balance
 // monitoring and wildlife density dashboards.
@@ -455,4 +455,37 @@ type Zombies struct {
 	// ByState maps mind state -> live count. Keys: "calm", "disturbed", "alerted", "chase", "fight", and "dead"
 	// (killed, pending cleanup).
 	ByState map[string]int `json:"by_state"`
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// Status is a summary of the game world/server state. Use for public status widgets/dashboards.
+type Status struct {
+	// Version is the DayZ server engine/exe build, e.g. "1.30.164289.70".
+	Version string `json:"version"`
+	// UptimeSeconds is the server process uptime in seconds (truncated to a whole second).
+	UptimeSeconds int `json:"uptime_seconds"`
+	// Players holds the current/maximum player counts.
+	Players struct {
+		// Online is the current connected player count.
+		Online int `json:"online"`
+		// Max is the server slot limit.
+		Max int `json:"max"`
+	} `json:"players"`
+	// Time is the in-game clock.
+	Time struct {
+		// Hours is the in-game hour, 0..23.
+		Hours int `json:"hours"`
+		// Minutes is the in-game minute, 0..59.
+		Minutes int `json:"minutes"`
+	} `json:"time"`
+	// Weather is the basic current weather at the map center.
+	Weather struct {
+		// Temperature is the air temperature incl. weather modifiers, Celsius.
+		Temperature float64 `json:"temperature"`
+		// Rain is the rain intensity, 0..1.
+		Rain float64 `json:"rain"`
+		// Snow is the snowfall intensity, 0..1.
+		Snow float64 `json:"snow"`
+	} `json:"weather"`
 }

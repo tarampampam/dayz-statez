@@ -6,23 +6,30 @@ import (
 	"net/http"
 	"strings"
 
-	"server/internal/httpserver/handlers/data_animals"
-	"server/internal/httpserver/handlers/data_areas"
-	"server/internal/httpserver/handlers/data_events"
-	"server/internal/httpserver/handlers/data_hits"
-	"server/internal/httpserver/handlers/data_players"
-	"server/internal/httpserver/handlers/data_territories"
-	"server/internal/httpserver/handlers/data_vehicles"
-	"server/internal/httpserver/handlers/data_weapons"
-	"server/internal/httpserver/handlers/data_world"
-	"server/internal/httpserver/handlers/data_zombies"
-	"server/internal/httpserver/handlers/healthz"
-	"server/internal/httpserver/handlers/not_found"
-	"server/internal/httpserver/middleware"
-	"server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_animals"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_areas"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_events"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_hits"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_players"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_territories"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_vehicles"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_weapons"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_world"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/data_zombies"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/healthz"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/not_found"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/handlers/status"
+	"gh.tarampamp.am/dayz-statez/server/internal/httpserver/middleware"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
 )
 
 // NewHandler creates the main HTTP handler for the server.
+//
+// IMPORTANT: this handler is the server side of the public HTTP API client in pkg/api (gh.tarampamp.am/dayz-statez/
+// server/pkg/api). Anything the client depends on - request/error handling logic, returned status codes, the handler
+// URLs (routes) and the response data formats - MUST be kept in sync with that client. Prefer backwards-compatible
+// changes - adding new endpoints or optional fields is safe, while renaming/removing routes or fields, repurposing
+// status codes or changing payload shapes will break existing client builds and any third parties using them.
 func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler { //nolint:funlen
 	mux := http.NewServeMux()
 
@@ -47,6 +54,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 		weaponsRoute     = "/weapons"
 		worldRoute       = "/world"
 		zombiesRoute     = "/zombies"
+		statusRoute      = "/status"
 
 		healthRoute = "/healthz"
 	)
@@ -82,6 +90,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 		zombiesRoute: "Live infected census - counts per canonical type and per AI mind-state (calm, disturbed, " +
 			"alerted, chase, fight, dead). Use for horde-density and AI-activity monitoring and correlating it with " +
 			"server FPS",
+		statusRoute: "Short game/world status - version, players online/max, uptime, in-game time, weather",
 		healthRoute: "Liveness probe - always returns 200",
 	})
 	if jErr != nil {
@@ -106,6 +115,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 	mux.HandleFunc("GET "+worldRoute, auth(data_world.New(dd, log)))
 	mux.HandleFunc("GET "+zombiesRoute, auth(data_zombies.New(dd, log)))
 
+	mux.HandleFunc("GET "+statusRoute, status.New(dd, log)) // NOTE: public (without auth)
 	mux.HandleFunc("GET "+healthRoute, healthz.Handler)
 	mux.HandleFunc("/", not_found.Handler)
 

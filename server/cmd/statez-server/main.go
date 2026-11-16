@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"server/cmd/statez-server/app"
+	"gh.tarampamp.am/dayz-statez/server/cmd/statez-server/app"
 )
 
 func main() {

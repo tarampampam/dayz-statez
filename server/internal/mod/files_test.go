@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"server/internal/mod"
-	"server/internal/testutil/assert"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/internal/testutil/assert"
 )
 
 var (

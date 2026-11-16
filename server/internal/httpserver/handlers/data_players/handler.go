@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"server/internal/mod"
-	"server/pkg"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/pkg/api"
 )
 
 // New creates a new HTTP handler that serves the players data as JSON.
@@ -51,7 +51,7 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 		w.Header().Set("Last-Modified", modTime.UTC().Format(http.TimeFormat))
 		w.Header().Set("X-Data-Age-Seconds", strconv.Itoa(max(0, int(time.Since(modTime).Seconds()))))
 
-		var resp pkg.Players
+		var resp api.Players
 		fill(data, &resp)
 
 		w.WriteHeader(http.StatusOK)
@@ -67,12 +67,12 @@ func round4(f float64) float64 { return math.Round(f*1e4) / 1e4 } //nolint:mnd /
 
 // fill copies the data from mod's data structure to a public data structure, that will be serialized to JSON and
 // sent to the client.
-func fill(src *mod.Players, dst *pkg.Players) {
+func fill(src *mod.Players, dst *api.Players) {
 	if src == nil || dst == nil {
 		return
 	}
 
-	*dst = make(pkg.Players, len(*src))
+	*dst = make(api.Players, len(*src))
 
 	for i := range *src {
 		v, p := &(*src)[i], &(*dst)[i]

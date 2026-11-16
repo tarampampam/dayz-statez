@@ -101,7 +101,7 @@ linters:
       rules:
         main:
           list-mode: strict
-          allow: [$gostd, server]
+          allow: [$gostd, gh.tarampamp.am/dayz-statez/server]
     # response-body writes are fire-and-forget: a write error means the client is already gone, nothing to do
     errcheck: {check-type-assertions: true, check-blank: true, exclude-functions: ['(net/http.ResponseWriter).Write']}
     errchkjson: {report-no-exported: false}

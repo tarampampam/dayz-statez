@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"time"
 
-	"server/internal/mod"
-	"server/pkg"
+	"gh.tarampamp.am/dayz-statez/server/internal/mod"
+	"gh.tarampamp.am/dayz-statez/server/pkg/api"
 )
 
 // New creates a new HTTP handler that serves the animals data as JSON.
@@ -51,7 +51,7 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 		w.Header().Set("Last-Modified", modTime.UTC().Format(http.TimeFormat))
 		w.Header().Set("X-Data-Age-Seconds", strconv.Itoa(max(0, int(time.Since(modTime).Seconds()))))
 
-		var resp pkg.Animals
+		var resp api.Animals
 		fill(data, &resp)
 
 		w.WriteHeader(http.StatusOK)
@@ -64,7 +64,7 @@ func New(dd *mod.DataDir, log *slog.Logger) http.HandlerFunc {
 
 // fill copies the data from mod's data structure to a public data structure, that will be serialized to JSON and
 // sent to the client.
-func fill(src *mod.Animals, dst *pkg.Animals) {
+func fill(src *mod.Animals, dst *api.Animals) {
 	if src == nil || dst == nil {
 		return
 	}

@@ -81,7 +81,7 @@ func NewHandler(log *slog.Logger, dd *mod.DataDir, apiToken string) http.Handler
 			"performance/weather/economy monitoring",
 		zombiesRoute: "Live infected census - counts per canonical type and per AI mind-state (calm, disturbed, " +
 			"alerted, chase, fight, dead). Use for horde-density and AI-activity monitoring and correlating it with " +
-			"gh.tarampamp.am/dayz-statez/server FPS",
+			"server FPS",
 		healthRoute: "Liveness probe - always returns 200",
 	})
 	if jErr != nil {

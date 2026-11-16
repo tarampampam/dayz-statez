@@ -22,7 +22,7 @@ func TestNew_ok(t *testing.T) {
 
 	// time_of_day 1 -> "day"; uptime 205.5 -> int 205; temperature 9.481267 -> round4 9.4813.
 	fsys := fstest.MapFS{"world.json": {Data: []byte(
-		`{"world":"chernarusplus","gh.tarampamp.am/dayz-statez/server_version":"1.30.164289.70","uptime_seconds":205.5,"hour":8,"minute":33,` +
+		`{"world":"chernarusplus","server_version":"1.30.164289.70","uptime_seconds":205.5,"hour":8,"minute":33,` +
 			`"time_of_day":1,"weather":{"temperature":9.481267}}`,
 	), ModTime: testMtime}}
 
@@ -36,7 +36,7 @@ func TestNew_ok(t *testing.T) {
 
 	var got struct {
 		MapName       string `json:"map_name"`
-		ServerVersion string `json:"gh.tarampamp.am/dayz-statez/server_version"`
+		ServerVersion string `json:"server_version"`
 		UptimeSeconds int    `json:"uptime_seconds"`
 		Time          struct {
 			Hour      int    `json:"hour"`

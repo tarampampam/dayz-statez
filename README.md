@@ -1,4 +1,6 @@
-![](https://habrastorage.org/webt/af/f0/b5/aff0b57fdd6633b00c9ae0f4eb471527.png)
+<p align="center">
+  <img src="https://habrastorage.org/webt/af/f0/b5/aff0b57fdd6633b00c9ae0f4eb471527.png" alt="banner" width="100%" />
+</p>
 
 # StateZ
 

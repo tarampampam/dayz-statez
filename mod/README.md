@@ -8,6 +8,8 @@ Download `mod.tar.gz` from the latest release and unpack it into the DayZ server
 > [!NOTE]
 > Replace `vX.Y.Z` with the actual **mod** version number of the release you want to install, grab the latest from the
 > [releases page](https://github.com/tarampampam/dayz-statez/releases).
+>
+> ![latest_ver](https://img.shields.io/github/v/tag/tarampampam/dayz-statez?filter=mod/*&sort=semver&label=latest)
 
 ```shell
 root$ su - dayz

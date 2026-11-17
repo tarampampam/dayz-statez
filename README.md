@@ -54,7 +54,10 @@ StateZ has two parts, installed independently:
 
 This is a monorepo with multiple projects (mod, server) that ship independently, and each on its own tag prefix:
 
-| Project |   Tags format   |
-|:-------:|:---------------:|
-| Mod     |  `mod/vX.Y.Z`   |
-| Server  | `server/vX.Y.Z` |
+| Project |   Tags format   | Latest release  |
+|:-------:|:---------------:|:---------------:|
+| Mod     |  `mod/vX.Y.Z`   | ![latest_mod] |
+| Server  | `server/vX.Y.Z` | ![latest_server] |
+
+[latest_mod]: https://img.shields.io/github/v/tag/tarampampam/dayz-statez?filter=mod/*&sort=semver&label=version
+[latest_server]: https://img.shields.io/github/v/tag/tarampampam/dayz-statez?filter=server/*&sort=semver&label=version

@@ -49,6 +49,8 @@ Run all the following as **root** to download the Linux `amd64` server archive, 
 > [!NOTE]
 > Replace `vX.Y.Z` with the actual **server** version number of the release you want to install, grab the latest from
 > the [releases page](https://github.com/tarampampam/dayz-statez/releases).
+>
+> ![latest_ver](https://img.shields.io/github/v/tag/tarampampam/dayz-statez?filter=server/*&sort=semver&label=latest)
 
 ```shell
 curl -fLO https://github.com/tarampampam/dayz-statez/releases/download/server/vX.Y.Z/statez-server-linux-amd64.tar.gz

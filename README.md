@@ -1,3 +1,5 @@
+![](https://habrastorage.org/webt/af/f0/b5/aff0b57fdd6633b00c9ae0f4eb471527.png)
+
 # StateZ
 
 StateZ exposes the live state of a DayZ world over a simple read-only HTTP API. It has two parts - a server-side

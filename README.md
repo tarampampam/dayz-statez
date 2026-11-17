@@ -49,3 +49,12 @@ StateZ has two parts, installed independently:
 - **Mod** (DayZ server-side) - see [`mod/README.md`](mod/README.md) for installing and configuring it.
 - **Server** (`statez-server` HTTP API) - see [`server/README.md`](server/README.md) for installing, configuration
   flags and the HTTP API reference.
+
+## Releases
+
+This is a monorepo with multiple projects (mod, server) that ship independently, and each on its own tag prefix:
+
+| Project |   Tags format   |
+|:-------:|:---------------:|
+| Mod     |  `mod/vX.Y.Z`   |
+| Server  | `server/vX.Y.Z` |

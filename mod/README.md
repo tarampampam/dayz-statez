@@ -2,14 +2,17 @@
 
 The mod is server-side only. **Clients need nothing installed**.
 
-Download [`mod.tar.gz`](https://github.com/tarampampam/dayz-statez/releases/latest/download/mod.tar.gz)
-from the latest release and unpack it into the DayZ server directory as the operating-system **user that runs DayZ**.
-Replace `dayz` below with that user. Switch to that user, then run the following commands:
+Download `mod.tar.gz` from the latest release and unpack it into the DayZ server directory as the operating-system
+**user that runs DayZ**. Replace `dayz` below with that user. Switch to that user, then run the following commands:
+
+> [!NOTE]
+> Replace `vX.Y.Z` with the actual **mod** version number of the release you want to install, grab the latest from the
+> [releases page](https://github.com/tarampampam/dayz-statez/releases).
 
 ```shell
 root$ su - dayz
 dayz$ cd /path/to/dayz-server
-dayz$ curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/mod.tar.gz
+dayz$ curl -fLO "https://github.com/tarampampam/dayz-statez/releases/download/mod/vX.Y.Z/mod.tar.gz"
 dayz$ tar -xzf ./mod.tar.gz
 dayz$ rm ./mod.tar.gz
 ```

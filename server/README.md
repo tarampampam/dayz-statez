@@ -46,8 +46,12 @@ curl -s -H "Authorization: Bearer !!!CHANGE_ME!!!" http://127.0.0.1:12301/world
 
 Run all the following as **root** to download the Linux `amd64` server archive, extract it, and install the binary:
 
+> [!NOTE]
+> Replace `vX.Y.Z` with the actual **server** version number of the release you want to install, grab the latest from
+> the [releases page](https://github.com/tarampampam/dayz-statez/releases).
+
 ```shell
-curl -fLO https://github.com/tarampampam/dayz-statez/releases/latest/download/statez-server-linux-amd64.tar.gz
+curl -fLO https://github.com/tarampampam/dayz-statez/releases/download/server/vX.Y.Z/statez-server-linux-amd64.tar.gz
 tar -xzf ./statez-server-linux-amd64.tar.gz
 install -o root -g root -m 0755 ./statez-server /usr/local/bin/statez-server
 rm ./statez-server-linux-amd64.tar.gz

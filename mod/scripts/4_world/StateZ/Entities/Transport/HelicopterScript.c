@@ -7,16 +7,13 @@
 
 #ifdef SERVER
 /**
-    \brief Updates StateZ counters on spawn/cleanup and kills.
+    \brief Thin StateZ lifecycle shim for helicopters. Logic lives in StateZ_TransportHooks.
 */
 modded class HelicopterScript
 {
 	protected bool m_StateZ_IsKilled; //!< Prevent counting kills on destroyed vehicles.
-	protected ref StateZ_TransportMetrics m_StateZ; //!< Metrics for this helicopter.
+	protected ref StateZ_TransportMetrics m_StateZ; //!< Metrics for this vehicle.
 
-	/**
-	    \brief Initialize transport metrics for helicopter loaded from persistence.
-	*/
 	override void EEOnAfterLoad()
 	{
 		super.EEOnAfterLoad();
@@ -24,20 +21,13 @@ modded class HelicopterScript
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		if (!m_StateZ)
-			m_StateZ = new StateZ_TransportMetrics();
-
-		// Init metrics for a persistent transport loaded from save with the actual persistence hash.
-		m_StateZ.Init(this);
+		m_StateZ = StateZ_TransportHooks.OnAfterLoad(this, m_StateZ);
 
 		// prevent double counting for save/load destroyed vehicle
 		if (IsDamageDestroyed())
 			m_StateZ_IsKilled = true;
 	}
 
-	/**
-	    \brief Register helicopter in transport registry and create metrics.
-	*/
 	override void EEInit()
 	{
 		super.EEInit();
@@ -45,56 +35,31 @@ modded class HelicopterScript
 		if (!StateZ_Config.IsLoaded())
 			return;
 
-		StateZ_Storage.s_Helicopters += 1;
-		StateZ_TransportRegistry.Register(this);
-
-		if (!m_StateZ)
-			m_StateZ = new StateZ_TransportMetrics();
-
-		// Scheduled init of metrics for the created transport.
-		// In this state, the persistence hash is not guaranteed and must be loaded later.
-		// However, if the transport was not loaded but created via debug, this is the only reliable place for integration.
-		m_StateZ.InitLater(this);
+		m_StateZ = StateZ_TransportHooks.OnInit(this);
 
 		// prevent double counting for save/load destroyed vehicle
 		if (IsDamageDestroyed())
 			m_StateZ_IsKilled = true;
 	}
 
-	/**
-	    \brief Unregister helicopter and decrement counts on delete.
-	*/
 	override void EEDelete(EntityAI parent)
 	{
 		if (StateZ_Config.IsLoaded()) {
+			StateZ_TransportHooks.OnDelete(this, m_StateZ);
 			m_StateZ = null;
-			StateZ_Storage.s_Helicopters -= 1;
-			StateZ_TransportRegistry.Unregister(this);
 		}
 
 		super.EEDelete(parent);
 	}
 
-	/**
-	    \brief Increment helicopters destroyed counter on kill.
-	*/
 	override void EEKilled(Object killer)
 	{
 		if (StateZ_Config.IsLoaded() && !m_StateZ_IsKilled) {
-			StateZ_Storage.s_HelicoptersDestroys += 1;
+			StateZ_TransportHooks.OnKilled(this);
 			m_StateZ_IsKilled = true;
 		}
 
 		super.EEKilled(killer);
-	}
-
-	/**
-	    \brief Accessor for per-helicopter metrics.
-	    \return \p StateZ_TransportMetrics or null.
-	*/
-	StateZ_TransportMetrics StateZ_GetMetrics()
-	{
-		return m_StateZ;
 	}
 }
 #endif

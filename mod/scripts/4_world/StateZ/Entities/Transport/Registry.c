@@ -7,49 +7,47 @@
 
 #ifdef SERVER
 /**
-    \brief Global registry of active Transport entities.
-    \details Keeps track of all spawned vehicles (CarScript, BoatScript, HelicopterScript, etc.)
-             for metrics collection. Updated on EEInit/EEDelete.
+    \brief Global registry of active vehicle metrics.
+    \details Holds one StateZ_TransportMetrics per live vehicle, regardless of
+             family. Storing the metrics (not the Transport) lets the writer emit
+             every vehicle without per-family casts. Updated on EEInit/EEDelete.
 */
 class StateZ_TransportRegistry
 {
-	// Registry of active Transport entities.
-	protected static ref array<Transport> s_Registry = new array<Transport>();
+	protected static ref array<ref StateZ_TransportMetrics> s_Registry = new array<ref StateZ_TransportMetrics>();
 
 	/**
-	    \brief Register new transport in the registry.
+	    \brief Register vehicle metrics.
 	    \details Ignores duplicates and null references.
-	    \param transport Transport instance
 	*/
-	static void Register(Transport transport)
+	static void Register(StateZ_TransportMetrics metrics)
 	{
-		if (!transport)
+		if (!metrics)
 			return;
 
-		if (s_Registry.Find(transport) == -1)
-			s_Registry.Insert(transport);
+		if (s_Registry.Find(metrics) == -1)
+			s_Registry.Insert(metrics);
 	}
 
 	/**
-	    \brief Remove transport from the registry.
+	    \brief Remove vehicle metrics.
 	    \details Does nothing if not found or null.
-	    \param transport Transport instance
 	*/
-	static void Unregister(Transport transport)
+	static void Unregister(StateZ_TransportMetrics metrics)
 	{
-		if (!transport)
+		if (!metrics)
 			return;
 
-		int i = s_Registry.Find(transport);
+		int i = s_Registry.Find(metrics);
 		if (i >= 0)
 			s_Registry.Remove(i);
 	}
 
 	/**
-	    \brief Returns direct reference to the live registry
+	    \brief Returns direct reference to the live registry.
 	    \warning Do NOT modify this array (Remove/Insert) while iterating!
 	*/
-	static array<Transport> GetList()
+	static array<ref StateZ_TransportMetrics> GetList()
 	{
 		return s_Registry;
 	}

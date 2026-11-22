@@ -55,6 +55,7 @@ class StateZ_Storage
 	static int s_Cars;
 	static int s_Boats;
 	static int s_Helicopters;
+	static int s_Motorbikes;
 	static int s_TerritoryFlags;
 	static int s_BaseBuildings;
 	static int s_Tents;
@@ -119,6 +120,7 @@ class StateZ_Storage
 	static int s_CarsDestroys;
 	static int s_BoatsDestroys;
 	static int s_HelicoptersDestroys;
+	static int s_MotorbikesDestroys;
 
 #ifdef EXPANSIONMODAI
 	static int s_ExpansionAI;
@@ -277,6 +279,7 @@ class StateZ_Storage
 		snap.cars = s_Cars;
 		snap.boats = s_Boats;
 		snap.helicopters = s_Helicopters;
+		snap.motorbikes = s_Motorbikes;
 		snap.territory_flags = s_TerritoryFlags;
 		snap.base_buildings = s_BaseBuildings;
 		snap.tents = s_Tents;
@@ -300,6 +303,7 @@ class StateZ_Storage
 		snap.cars_destroyed = s_CarsDestroys;
 		snap.boats_destroyed = s_BoatsDestroys;
 		snap.helicopters_destroyed = s_HelicoptersDestroys;
+		snap.motorbikes_destroyed = s_MotorbikesDestroys;
 
 #ifdef EXPANSIONMODAI
 		snap.eai = s_ExpansionAI;

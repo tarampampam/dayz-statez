@@ -109,9 +109,11 @@ func fill(src *mod.World, dst *api.World) { //nolint:funlen
 	dst.Vehicles.Cars = src.Cars
 	dst.Vehicles.Boats = src.Boats
 	dst.Vehicles.Helicopters = src.Helicopters
+	dst.Vehicles.Motorbikes = src.Motorbikes
 	dst.Vehicles.Destroyed.Cars = src.CarsDestroyed
 	dst.Vehicles.Destroyed.Boats = src.BoatsDestroyed
 	dst.Vehicles.Destroyed.Helicopters = src.HelicoptersDestroyed
+	dst.Vehicles.Destroyed.Motorbikes = src.MotorbikesDestroyed
 
 	dst.Weapons.Count = src.Weapons
 	dst.Weapons.Suppressors = src.Suppressors

@@ -48,6 +48,29 @@ func TestNew(t *testing.T) {
 				"parts":[{"name":"CarBattery","health":0.9551}]
 			}]`,
 		},
+		"motorbike": { // recently added family; no radiator (coolant -1), engine_on from numeric 1
+			giveJSON: `[{
+				"class_name":"Motorbike_02_Red","vehicle_type":"Motorbike","hash":12345,
+				"health":1,"crew_occupied":1,"crew_capacity":2,"speed_ms":0,"rpm":0,"gear":1,
+				"engine_on":1,"lights_on":0,"fuel_fraction":0.182,"coolant_fraction":-1.0,"cargo_items":0,
+				"pos_x":100.5,"pos_y":200.25,"pos_alt":3.1,"pos_angle":45,
+				"parts":[{"name":"SparkPlug","health":0.8}]
+			}]`,
+			wantCode: http.StatusOK,
+			wantBody: `[{
+				"hash":12345,
+				"class":{"name":"Motorbike_02_Red","type":"Motorbike"},
+				"pos":{"x":100.5,"y":200.25,"alt":3.1,"angle":45},
+				"state":{
+					"health":1,"speed_ms":0,
+					"engine":{"on":true,"rpm":0,"gear":1},
+					"lights_on":false,
+					"crew":{"occupied":1,"capacity":2},
+					"fuel_fraction":0.182,"coolant_fraction":-1,"cargo_items":0
+				},
+				"parts":[{"name":"SparkPlug","health":0.8}]
+			}]`,
+		},
 		"empty payload": {
 			giveJSON: `[]`,
 			wantCode: http.StatusOK,

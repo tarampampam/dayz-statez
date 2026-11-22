@@ -120,6 +120,7 @@ class StateZ_WorldSnapshot
 	int cars;
 	int boats;
 	int helicopters;
+	int motorbikes;
 	int territory_flags;
 	int base_buildings;
 	int tents;
@@ -145,6 +146,7 @@ class StateZ_WorldSnapshot
 	int cars_destroyed;
 	int boats_destroyed;
 	int helicopters_destroyed;
+	int motorbikes_destroyed;
 
 #ifdef EXPANSIONMODAI
 	int eai;

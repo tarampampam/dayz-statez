@@ -342,6 +342,7 @@ type (
 		Cars           int `json:"cars"`            // live cars
 		Boats          int `json:"boats"`           // live boats
 		Helicopters    int `json:"helicopters"`     // live helicopters
+		Motorbikes     int `json:"motorbikes"`      // live motorbikes
 		TerritoryFlags int `json:"territory_flags"` // live territory (base) flags
 		BaseBuildings  int `json:"base_buildings"`  // BaseBuildingBase entities
 		Tents          int `json:"tents"`           // TentBase entities
@@ -365,6 +366,7 @@ type (
 		CarsDestroyed        int `json:"cars_destroyed"`
 		BoatsDestroyed       int `json:"boats_destroyed"`
 		HelicoptersDestroyed int `json:"helicopters_destroyed"`
+		MotorbikesDestroyed  int `json:"motorbikes_destroyed"`
 
 		EAI          int `json:"eai,omitempty"`            // live Expansion AI survivors
 		EAINPC       int `json:"eai_npc,omitempty"`        // live Expansion AI NPCs

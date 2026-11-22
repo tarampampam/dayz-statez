@@ -40,6 +40,14 @@ class StateZ_TransportMetrics
 	float m_Yaw;
 
 	/**
+	    \brief Whether the backing vehicle still exists (weak ref auto-nulled on delete).
+	*/
+	bool IsAlive()
+	{
+		return m_Transport != null;
+	}
+
+	/**
 	    \brief One-time init with transport reference.
 	*/
 	void Init(Transport transport)
@@ -98,38 +106,42 @@ class StateZ_TransportMetrics
 		m_Rpm = 0;
 		m_Gear = -1;
 
-		// rpm/gear/coolant are Car-only (covers motorbikes too); boats have none
-		CarScript carAll;
-		if (Class.CastTo(carAll, m_Transport)) {
-			m_Rpm = Math.Round(carAll.EngineGetRPM());
-			m_Gear = carAll.GetCurrentGear();
-			if (carAll.IsVitalRadiator())
-				m_CoolantFraction = carAll.GetFluidFraction(CarFluid.COOLANT);
-		}
+		// Fuel via the generic Transport script-fluid API (CarScript/BoatScript/
+		// MotorbikeScript each override it); capacity 0 means no tank, stays -1.
+		if (m_Transport.GetFluidCapacityScript(ETransportFluid.FUEL) > 0)
+			m_FuelFraction = m_Transport.GetFluidFractionScript(ETransportFluid.FUEL);
 
+		// engine_on/rpm/gear/coolant have no common Transport method; feature-detect
+		// per family. Coolant is a car-radiator concept: GetFluidCapacity(COOLANT) is
+		// >0 even for boats/motorbikes, so gate on IsVitalRadiator() to keep -1 for
+		// them. rpm/gear are reported for cars and motorbikes (boats never were).
 		CarScript car;
-		if (Class.CastTo(car, m_Transport) && car.IsVitalFuelTank()) {
-			m_EngineOn = car.EngineIsOn();
-			m_FuelFraction = car.GetFluidFraction(CarFluid.FUEL);
-			return;
-		}
-
 		BoatScript boat;
-		if (Class.CastTo(boat, m_Transport) && boat.HasEngine()) {
+		MotorbikeScript bike;
+		if (Class.CastTo(car, m_Transport)) {
+			m_EngineOn = car.EngineIsOn();
+			m_Rpm = Math.Round(car.EngineGetRPM());
+			m_Gear = car.GetCurrentGear();
+			if (car.IsVitalRadiator())
+				m_CoolantFraction = car.GetFluidFraction(CarFluid.COOLANT);
+		} else if (Class.CastTo(boat, m_Transport) && boat.HasEngine()) {
 			if (!boat.EngineIsOn() && speed < 0.30)
 				m_SpeedMS = 0;
 
 			m_EngineOn = boat.EngineIsOn();
-			m_FuelFraction = boat.GetFluidFraction(BoatFluid.FUEL);
-			return;
+		} else if (Class.CastTo(bike, m_Transport)) {
+			m_EngineOn = bike.EngineIsOn();
+			m_Rpm = Math.Round(bike.EngineGetRPM());
+			m_Gear = bike.GetCurrentGear();
 		}
 
 #ifdef EXPANSIONMODVEHICLE
 		ExpansionVehicleBase expVehicle;
 		if (Class.CastTo(expVehicle, m_Transport)) {
 			m_EngineOn = expVehicle.Expansion_EngineIsOn();
-			m_FuelFraction = expVehicle.GetFluidFraction(CarFluid.FUEL);
-			return;
+			// Expansion fuel may not route through the generic script-fluid API.
+			if (m_FuelFraction < 0)
+				m_FuelFraction = expVehicle.GetFluidFraction(CarFluid.FUEL);
 		}
 #endif
 	}

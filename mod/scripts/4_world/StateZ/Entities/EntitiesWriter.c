@@ -54,7 +54,7 @@ class StateZ_EntitiesWriter
 	*/
 	static void BuildTransportJson(out string json)
 	{
-		array<Transport> list = StateZ_TransportRegistry.GetList();
+		array<ref StateZ_TransportMetrics> list = StateZ_TransportRegistry.GetList();
 
 		if (!list || list.Count() == 0) {
 			json = "[]";
@@ -63,34 +63,9 @@ class StateZ_EntitiesWriter
 
 		array<ref StateZ_TransportSnapshot> snaps = new array<ref StateZ_TransportSnapshot>();
 
-		foreach (Transport transport : list) {
-			if (!transport)
-				continue;
-
-			StateZ_TransportMetrics tm;
-
-			CarScript car = CarScript.Cast(transport);
-			if (car)
-				tm = car.StateZ_GetMetrics();
-			else {
-				BoatScript boat = BoatScript.Cast(transport);
-				if (boat)
-					tm = boat.StateZ_GetMetrics();
-				else {
-					HelicopterScript heli = HelicopterScript.Cast(transport);
-					if (heli)
-						tm = heli.StateZ_GetMetrics();
-#ifdef EXPANSIONMODVEHICLE
-					else {
-						ExpansionVehicleBase expansionVeh = ExpansionVehicleBase.Cast(transport);
-						if (expansionVeh)
-							tm = expansionVeh.StateZ_GetMetrics();
-					}
-#endif
-				}
-			}
-
-			if (!tm)
+		// Registry holds metrics for every family, so no per-type cast is needed here.
+		foreach (StateZ_TransportMetrics tm : list) {
+			if (!tm || !tm.IsAlive())
 				continue;
 
 			tm.Update();

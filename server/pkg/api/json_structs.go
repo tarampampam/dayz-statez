@@ -329,10 +329,12 @@ type World struct {
 		Cars        int `json:"cars"`        // live
 		Boats       int `json:"boats"`       // live
 		Helicopters int `json:"helicopters"` // live
+		Motorbikes  int `json:"motorbikes"`  // live
 		Destroyed   struct {
 			Cars        int `json:"cars"`        // cumulative
 			Boats       int `json:"boats"`       // cumulative
 			Helicopters int `json:"helicopters"` // cumulative
+			Motorbikes  int `json:"motorbikes"`  // cumulative
 		} `json:"destroyed"`
 	} `json:"vehicles"`
 

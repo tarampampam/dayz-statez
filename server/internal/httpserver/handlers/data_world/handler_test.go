@@ -66,6 +66,49 @@ func TestNew_ok(t *testing.T) {
 	assert.True(t, age >= 0)
 }
 
+func TestNew_vehicles(t *testing.T) {
+	t.Parallel()
+
+	// Distinct values per field so any mapping mix-up (live vs destroyed, wrong
+	// family) is caught. Motorbikes are the recently added family.
+	fsys := fstest.MapFS{"world.json": {Data: []byte(
+		`{"cars":43,"boats":17,"helicopters":2,"motorbikes":25,` +
+			`"cars_destroyed":7,"boats_destroyed":3,"helicopters_destroyed":1,"motorbikes_destroyed":5}`,
+	), ModTime: testMtime}}
+
+	h := data_world.New(mod.OpenDataDir(fsys), slog.New(slog.DiscardHandler))
+
+	rec := httptest.NewRecorder()
+	h(rec, httptest.NewRequest(http.MethodGet, "/world", http.NoBody))
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	var got struct {
+		Vehicles struct {
+			Cars        int `json:"cars"`
+			Boats       int `json:"boats"`
+			Helicopters int `json:"helicopters"`
+			Motorbikes  int `json:"motorbikes"`
+			Destroyed   struct {
+				Cars        int `json:"cars"`
+				Boats       int `json:"boats"`
+				Helicopters int `json:"helicopters"`
+				Motorbikes  int `json:"motorbikes"`
+			} `json:"destroyed"`
+		} `json:"vehicles"`
+	}
+	assert.NoError(t, json.Unmarshal(rec.Body.Bytes(), &got))
+
+	assert.Equal(t, 43, got.Vehicles.Cars)
+	assert.Equal(t, 17, got.Vehicles.Boats)
+	assert.Equal(t, 2, got.Vehicles.Helicopters)
+	assert.Equal(t, 25, got.Vehicles.Motorbikes)
+	assert.Equal(t, 7, got.Vehicles.Destroyed.Cars)
+	assert.Equal(t, 3, got.Vehicles.Destroyed.Boats)
+	assert.Equal(t, 1, got.Vehicles.Destroyed.Helicopters)
+	assert.Equal(t, 5, got.Vehicles.Destroyed.Motorbikes)
+}
+
 func TestNew_missingFile(t *testing.T) {
 	t.Parallel()
 

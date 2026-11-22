@@ -10,23 +10,28 @@ type Animals struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Areas is the active effect areas - static preset gas zones and dynamic toxic/artillery events - each with its
-// type, center position, radius and the number of players currently inside. Use for a live hazard map and
-// player-in-zone alerts.
-type Areas []struct {
-	// Type is the zone type from engine enum eZoneType: "STATIC" (preset gas zones) or "DYNAMIC"
-	// (artillery/toxic events).
-	Type string `json:"type"`
-	// Center on the horizontal map plane.
-	Pos struct {
-		X float64 `json:"x"`
-		Y float64 `json:"y"`
-	} `json:"pos"`
-	// Radius is the area radius in meters.
-	Radius float64 `json:"radius"`
-	// Insiders is the number of players currently inside the area.
-	Insiders int `json:"insiders"`
-}
+type (
+	// Areas is the active effect areas - static preset gas zones and dynamic toxic/artillery events. Use for a live
+	// hazard map and player-in-zone alerts.
+	Areas []Area
+
+	// Area is a single active effect area - a static preset gas zone or a dynamic toxic/artillery event - with its
+	// type, center position, radius and the number of players currently inside.
+	Area struct {
+		// Type is the zone type from engine enum eZoneType: "STATIC" (preset gas zones) or "DYNAMIC"
+		// (artillery/toxic events).
+		Type string `json:"type"`
+		// Center on the horizontal map plane.
+		Pos struct {
+			X float64 `json:"x"`
+			Y float64 `json:"y"`
+		} `json:"pos"`
+		// Radius is the area radius in meters.
+		Radius float64 `json:"radius"`
+		// Insiders is the number of players currently inside the area.
+		Insiders int `json:"insiders"`
+	}
+)
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -52,138 +57,148 @@ type Hits struct {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-// Players is the Snapshot of every online player - identity (steam id, guid, name), character, position, vitals
-// (health/blood/shock/energy/water/toxicity/temperature), state flags (unconscious, restrained, godmode, bleeding,
-// etc.), network and lifetime stats (playtime, distance, kills). Use for a live player map.
-type Players []struct {
-	ID struct {
-		// SteamID is the player's Steam ID (PlayerIdentity.GetPlainId()).
-		SteamID string `json:"steam_id"`
-		// GUID is the DayZ identity id / BE GUID basis (PlayerIdentity.GetId()).
-		GUID string `json:"guid"`
-		// Name is the player display name.
-		Name string `json:"name"`
-	} `json:"id"`
+type (
+	// Players is a snapshot of every online player. Use for a live player map.
+	Players []Player
 
-	// Character describes the survivor identity/appearance.
-	Character struct {
-		// Type is the survivor variant with the "SurvivorM_"/"SurvivorF_" prefix stripped by the mod,
-		// e.g. "Judy", "Boris". Derived from GetType().
-		Type string `json:"type"`
-		// Gender is "male" or "female".
-		Gender string `json:"gender"`
-		// BloodType is the human-readable blood type incl. Rh sign, one of:
-		// "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-".
-		BloodType string `json:"blood_type"`
-	} `json:"character"`
+	// Player is a single online player snapshot - identity (steam id, guid, name), character, position, vitals
+	// (health/blood/shock/energy/water/toxicity/temperature), state flags (unconscious, restrained, godmode, bleeding,
+	// etc.), network and lifetime stats (playtime, distance, kills).
+	Player struct {
+		ID struct {
+			// SteamID is the player's Steam ID (PlayerIdentity.GetPlainId()).
+			SteamID string `json:"steam_id"`
+			// GUID is the DayZ identity id / BE GUID basis (PlayerIdentity.GetId()).
+			GUID string `json:"guid"`
+			// Name is the player display name.
+			Name string `json:"name"`
+		} `json:"id"`
 
-	// Pos is the player position: x/y horizontal map plane (engine X / engine Z), alt altitude/height (engine Y, m),
-	// angle yaw heading in degrees.
-	Pos struct {
-		X     float64 `json:"x"`
-		Y     float64 `json:"y"`
-		Alt   float64 `json:"alt"`
-		Angle float64 `json:"angle"`
-	} `json:"pos"`
+		// Character describes the survivor identity/appearance.
+		Character struct {
+			// Type is the survivor variant with the "SurvivorM_"/"SurvivorF_" prefix stripped by the mod,
+			// e.g. "Judy", "Boris". Derived from GetType().
+			Type string `json:"type"`
+			// Gender is "male" or "female".
+			Gender string `json:"gender"`
+			// BloodType is the human-readable blood type incl. Rh sign, one of:
+			// "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-".
+			BloodType string `json:"blood_type"`
+		} `json:"character"`
 
-	// Vitals are normalized life stats (0..1) plus body temperature.
-	Vitals struct {
-		// Health is normalized global health, 0..1.
-		Health float64 `json:"health"`
-		// Blood is normalized blood level, 0..1.
-		Blood float64 `json:"blood"`
-		// Shock is normalized shock/consciousness health, 0..1.
-		Shock float64 `json:"shock"`
-		// Energy is normalized energy stat, 0..1.
-		Energy float64 `json:"energy"`
-		// Water is normalized hydration stat, 0..1.
-		Water float64 `json:"water"`
-		// Toxicity is normalized toxicity stat, 0..1.
-		Toxicity float64 `json:"toxicity"`
-		// Wetness is the wetness stat value.
-		Wetness float64 `json:"wetness"`
-		// TemperatureCelsius is the player's body temperature, C (~36 when healthy).
-		TemperatureCelsius float64 `json:"temperature_celsius"`
-	} `json:"vitals"`
+		// Pos is the player position: x/y horizontal map plane (engine X / engine Z), alt altitude/height (engine Y, m),
+		// angle yaw heading in degrees.
+		Pos struct {
+			X     float64 `json:"x"`
+			Y     float64 `json:"y"`
+			Alt   float64 `json:"alt"`
+			Angle float64 `json:"angle"`
+		} `json:"pos"`
 
-	// State are condition flags and active-condition counters.
-	State struct {
-		// IsLoaded reports whether the character finished loading (IsPlayerLoaded()).
-		IsLoaded bool `json:"is_loaded"`
-		// IsUnconscious reports whether the player is unconscious.
-		IsUnconscious bool `json:"is_unconscious"`
-		// IsRestrained reports whether the player is restrained (handcuffed).
-		IsRestrained bool `json:"is_restrained"`
-		// Godmode reports whether damage is disabled (!GetAllowDamage()).
-		Godmode bool `json:"godmode"`
-		// ImmunityBoosted reports whether immunity is currently boosted.
-		ImmunityBoosted bool `json:"immunity_boosted"`
-		// AgentsActive is the number of active agents/pathogens (set bits of GetAgents()).
-		AgentsActive int `json:"agents_active"`
-		// BleedingSources is the number of active bleeding sources (set bits of GetBleedingBits()).
-		BleedingSources int `json:"bleeding_sources"`
-	} `json:"state"`
+		// Vitals are normalized life stats (0..1) plus body temperature.
+		Vitals struct {
+			// Health is normalized global health, 0..1.
+			Health float64 `json:"health"`
+			// Blood is normalized blood level, 0..1.
+			Blood float64 `json:"blood"`
+			// Shock is normalized shock/consciousness health, 0..1.
+			Shock float64 `json:"shock"`
+			// Energy is normalized energy stat, 0..1.
+			Energy float64 `json:"energy"`
+			// Water is normalized hydration stat, 0..1.
+			Water float64 `json:"water"`
+			// Toxicity is normalized toxicity stat, 0..1.
+			Toxicity float64 `json:"toxicity"`
+			// Wetness is the wetness stat value.
+			Wetness float64 `json:"wetness"`
+			// TemperatureCelsius is the player's body temperature, C (~36 when healthy).
+			TemperatureCelsius float64 `json:"temperature_celsius"`
+		} `json:"vitals"`
 
-	// Network quality observed over the collection window.
-	Network struct {
-		// Ping is the min/max ping (ms) observed over the window; 0 if unavailable.
-		Ping struct {
-			Min int `json:"min"`
-			Max int `json:"max"`
-		} `json:"ping"`
-		// Throttle is the network output throttle fraction observed in the window.
-		Throttle float64 `json:"throttle"`
-	} `json:"network"`
+		// State are condition flags and active-condition counters.
+		State struct {
+			// IsLoaded reports whether the character finished loading (IsPlayerLoaded()).
+			IsLoaded bool `json:"is_loaded"`
+			// IsUnconscious reports whether the player is unconscious.
+			IsUnconscious bool `json:"is_unconscious"`
+			// IsRestrained reports whether the player is restrained (handcuffed).
+			IsRestrained bool `json:"is_restrained"`
+			// Godmode reports whether damage is disabled (!GetAllowDamage()).
+			Godmode bool `json:"godmode"`
+			// ImmunityBoosted reports whether immunity is currently boosted.
+			ImmunityBoosted bool `json:"immunity_boosted"`
+			// AgentsActive is the number of active agents/pathogens (set bits of GetAgents()).
+			AgentsActive int `json:"agents_active"`
+			// BleedingSources is the number of active bleeding sources (set bits of GetBleedingBits()).
+			BleedingSources int `json:"bleeding_sources"`
+		} `json:"state"`
 
-	// Stats are lifetime analytics counters (persist across sessions).
-	Stats struct {
-		// PlaytimeSeconds is lifetime playtime from server analytics, seconds.
-		PlaytimeSeconds float64 `json:"playtime_sec"`
-		// DistanceMeters is lifetime distance traveled, meters.
-		DistanceMeters float64 `json:"distance_meters"`
-		// LongestHitMeters is the longest survivor hit distance, meters.
-		LongestHitMeters float64 `json:"longest_hit_meters"`
-		// PlayersKilled is lifetime players killed.
-		PlayersKilled int `json:"players_killed"`
-		// InfectedKilled is lifetime infected killed.
-		InfectedKilled int `json:"infected_killed"`
-	} `json:"stats"`
+		// Network quality observed over the collection window.
+		Network struct {
+			// Ping is the min/max ping (ms) observed over the window; 0 if unavailable.
+			Ping struct {
+				Min int `json:"min"`
+				Max int `json:"max"`
+			} `json:"ping"`
+			// Throttle is the network output throttle fraction observed in the window.
+			Throttle float64 `json:"throttle"`
+		} `json:"network"`
 
-	// WeightGrams is the carried inventory load in grams (GetPlayerLoad()).
-	WeightGrams float64 `json:"weight_grams"`
-	// LifetimeSeconds is seconds since this character's metrics were created (≈ seconds the character entity has
-	// existed this session).
-	LifetimeSeconds float64 `json:"lifetime_seconds"`
-}
+		// Stats are lifetime analytics counters (persist across sessions).
+		Stats struct {
+			// PlaytimeSeconds is lifetime playtime from server analytics, seconds.
+			PlaytimeSeconds float64 `json:"playtime_sec"`
+			// DistanceMeters is lifetime distance traveled, meters.
+			DistanceMeters float64 `json:"distance_meters"`
+			// LongestHitMeters is the longest survivor hit distance, meters.
+			LongestHitMeters float64 `json:"longest_hit_meters"`
+			// PlayersKilled is lifetime players killed.
+			PlayersKilled int `json:"players_killed"`
+			// InfectedKilled is lifetime infected killed.
+			InfectedKilled int `json:"infected_killed"`
+		} `json:"stats"`
+
+		// WeightGrams is the carried inventory load in grams (GetPlayerLoad()).
+		WeightGrams float64 `json:"weight_grams"`
+		// LifetimeSeconds is seconds since this character's metrics were created (≈ seconds the character entity has
+		// existed this session).
+		LifetimeSeconds float64 `json:"lifetime_seconds"`
+	}
+)
 
 // --------------------------------------------------------------------------------------------------------------------
+type (
+	// Territories is the base territory flags. Use to map bases and track which are kept alive vs decaying toward cleanup.
+	Territories []Territory
 
-// Territories is the base territory flags - position, remaining refresh-timer fraction and refresh radius. Use to
-// map bases and track which are kept alive vs decaying toward cleanup.
-type Territories []struct {
-	// Pos is the flag's horizontal map-plane position.
-	Pos struct {
-		X float64 `json:"x"`
-		Y float64 `json:"y"`
-	} `json:"pos"`
+	// Territory is a single base territory flag - position, remaining refresh-timer fraction and refresh radius.
+	Territory struct {
+		// Pos is the flag's horizontal map-plane position.
+		Pos struct {
+			X float64 `json:"x"`
+			Y float64 `json:"y"`
+		} `json:"pos"`
 
-	// Refresher is the base-flag refresh state.
-	Refresher struct {
-		// LifetimeFraction is the remaining refresh-timer fraction, 0..1 (GetRefresherTime01()); 1.0 = freshly refreshed.
-		LifetimeFraction float64 `json:"lifetime_fraction"`
-		// Radius is the flag refresh radius in meters (GameConstants.REFRESHER_RADIUS).
-		Radius float64 `json:"radius"`
-	} `json:"refresher"`
-}
+		// Refresher is the base-flag refresh state.
+		Refresher struct {
+			// LifetimeFraction is the remaining refresh-timer fraction, 0..1 (GetRefresherTime01()); 1.0 = freshly refreshed.
+			LifetimeFraction float64 `json:"lifetime_fraction"`
+			// Radius is the flag refresh radius in meters (GameConstants.REFRESHER_RADIUS).
+			Radius float64 `json:"radius"`
+		} `json:"refresher"`
+	}
+)
 
 // --------------------------------------------------------------------------------------------------------------------
 
 type (
-	// Vehicles contains every tracked vehicle - class/type, position, health, crew occupied/capacity, engine, lights,
-	// fuel & radiator-coolant levels, cargo item count and per-part health. Use for a live vehicle map, fleet
-	// condition monitoring and spotting free vs player-claimed cars (empty cargo + full hp + still at a spawn
-	// point = unclaimed).
-	Vehicles []struct {
+	// Vehicles contains every tracked vehicle. Use for a live vehicle map, fleet condition monitoring and spotting
+	// free vs player-claimed cars (empty cargo + full hp + still at a spawn point = unclaimed).
+	Vehicles []Vehicle
+
+	// Vehicle is a single tracked vehicle - class/type, position, health, crew occupied/capacity, engine, lights,
+	// fuel & radiator-coolant levels, cargo item count and per-part health.
+	Vehicle struct {
 		// Hash is a stable non-negative hash of the vehicle's persistent ID (0..2^31-1);
 		// -1 when the persistent ID is unavailable.
 		Hash int `json:"hash"`
